@@ -671,7 +671,10 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
 
   /* Reducir runas para mejor rendimiento */
   .runa { font-size: 1rem !important; }
-
+#skillCanvas {
+  font-weight: bold;
+  text-shadow: 1px 1px 0px black;
+}
   /* Ajustes para móvil del panel de edición */
 @media (max-width: 768px) {
   .skill-edit-panel {
@@ -1919,11 +1922,16 @@ function drawNodeShape(x, y, name, isSelected) {
   skillCtx.strokeStyle = isSelected ? '#e8c97a' : '#c9a84c';
   skillCtx.lineWidth = 2.5;
   skillCtx.stroke();
+  
+  // 👇 TEXTO EN BLANCO (antes era #e8c97a)
   skillCtx.font = 'bold 11px "Cinzel", serif';
-  skillCtx.fillStyle = '#e8c97a';
+  skillCtx.fillStyle = '#FFFFFF';   // CAMBIADO A BLANCO
+  skillCtx.shadowBlur = 2;          // pequeña sombra para destacar
+  skillCtx.shadowColor = 'black';
   skillCtx.textAlign = 'center';
   const displayName = name.length > 14 ? name.slice(0, 12) + '...' : name;
   skillCtx.fillText(displayName, x, y + 4);
+  skillCtx.shadowBlur = 0;
 }
 
 function addRootSkill() {
@@ -2086,9 +2094,10 @@ function escapeHtml(str) {
 function setupCanvasEvents() {
   const canvas = document.getElementById('skillCanvas');
   if (!canvas) return;
-  
-  let touchTimeout = null;
-  
+
+  let activeTouchId = null;
+  let lastMoveTime = 0;
+
   function getCanvasCoords(e) {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
@@ -2101,40 +2110,48 @@ function setupCanvasEvents() {
       clientX = e.clientX;
       clientY = e.clientY;
     }
-    const mouseX = (clientX - rect.left) * scaleX;
-    const mouseY = (clientY - rect.top) * scaleY;
-    return { x: mouseX, y: mouseY };
+    return {
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY
+    };
   }
-  
-  function handleTap(e, isLong = false) {
-    e.preventDefault();
-    if (!currentChar) return;
+
+  function findNodeAtCoord(x, y) {
+    if (!currentChar) return null;
     const char = charData[currentChar];
-    if (!char.skillTree) return;
-    const { x: mouseX, y: mouseY } = getCanvasCoords(e);
+    if (!char.skillTree) return null;
     
-    let clickedNode = null;
-    function findNode(nodes) {
+    function search(nodes) {
       for (let node of nodes) {
-        const dist = Math.hypot(mouseX - node.x, mouseY - node.y);
+        const dist = Math.hypot(x - node.x, y - node.y);
         if (dist < 30) return node;
         if (node.children) {
-          const found = findNode(node.children);
+          const found = search(node.children);
           if (found) return found;
         }
       }
       return null;
     }
-    clickedNode = findNode(char.skillTree.roots);
+    return search(char.skillTree.roots);
+  }
+
+  // === TOUCH / MOUSE START ===
+  function onPointerStart(e) {
+    e.preventDefault();
+    const coords = getCanvasCoords(e);
+    const node = findNodeAtCoord(coords.x, coords.y);
     
-    if (clickedNode) {
-      selectedNodeId = clickedNode.id;
+    if (node) {
+      selectedNodeId = node.id;
       drawSkillTree();
-      if (isLong || !editMode) {
-        editNode(clickedNode.id);
-      } else if (editMode) {
+      
+      if (editMode) {
+        // Modo edición: arrastrar
         isDragging = true;
-        dragNode = clickedNode;
+        dragNode = node;
+      } else {
+        // Modo normal: editar (abre panel)
+        editNode(node.id);
       }
     } else {
       selectedNodeId = null;
@@ -2142,46 +2159,36 @@ function setupCanvasEvents() {
       closeEditPanel();
     }
   }
-  
-  canvas.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    touchTimeout = setTimeout(() => {
-      handleTap(e, true);
-      touchTimeout = null;
-    }, 500);
-  });
-  canvas.addEventListener('touchend', (e) => {
-    if (touchTimeout) {
-      clearTimeout(touchTimeout);
-      handleTap(e, false);
-    }
-  });
-  canvas.addEventListener('touchmove', (e) => {
-    if (touchTimeout) clearTimeout(touchTimeout);
-  });
-  
-  canvas.addEventListener('mousedown', (e) => {
-    if (e.button === 2) {
-      e.preventDefault();
-      handleTap(e, true);
-    } else {
-      handleTap(e, false);
-    }
-  });
-  
-  window.addEventListener('mousemove', (e) => {
+
+  // === TOUCH / MOUSE MOVE (arrastrar) ===
+  function onPointerMove(e) {
     if (!editMode || !isDragging || !dragNode) return;
-    const { x: mouseX, y: mouseY } = getCanvasCoords(e);
-    dragNode.x = Math.max(40, Math.min(canvas.width - 40, mouseX));
-    dragNode.y = Math.max(40, Math.min(canvas.height - 40, mouseY));
+    e.preventDefault();
+    const coords = getCanvasCoords(e);
+    dragNode.x = Math.max(40, Math.min(canvas.width - 40, coords.x));
+    dragNode.y = Math.max(40, Math.min(canvas.height - 40, coords.y));
     saveCharactersToLocal();
     drawSkillTree();
-  });
-  
-  window.addEventListener('mouseup', () => {
+  }
+
+  // === TOUCH / MOUSE END ===
+  function onPointerEnd(e) {
     isDragging = false;
     dragNode = null;
-  });
+  }
+
+  // Eventos para ratón
+  canvas.addEventListener('mousedown', onPointerStart);
+  window.addEventListener('mousemove', onPointerMove);
+  window.addEventListener('mouseup', onPointerEnd);
+  
+  // Eventos para táctil
+  canvas.addEventListener('touchstart', onPointerStart, { passive: false });
+  canvas.addEventListener('touchmove', onPointerMove, { passive: false });
+  canvas.addEventListener('touchend', onPointerEnd);
+  
+  // Evitar menú contextual en móvil/ratón
+  canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 }
 
 setupCanvasEvents();
