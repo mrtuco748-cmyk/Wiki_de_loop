@@ -2,6 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;500;600;700&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -406,6 +407,135 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
   position:fixed;width:4px;height:4px;border-radius:50%;
   background:var(--gold);pointer-events:none;z-index:9998;
   animation:spark 0.8s ease forwards
+}
+
+/* ===== RESPONSIVE MÓVIL ===== */
+@media (max-width: 768px) {
+
+  /* Cursor personalizado: sin efecto en táctil */
+  .cursor-glow { display: none; }
+
+  /* HOME: pantalla de inicio */
+  #home-screen {
+    padding: 3.5rem 1rem 2rem;
+    justify-content: flex-start;
+  }
+  .home-border { top: 10px; left: 10px; right: 10px; bottom: 10px; }
+  .corner-ornament { width: 35px; height: 35px; }
+  .corner-ornament.tl { top: 10px; left: 10px; }
+  .corner-ornament.tr { top: 10px; right: 10px; }
+  .corner-ornament.bl { bottom: 10px; left: 10px; }
+  .corner-ornament.br { bottom: 10px; right: 10px; }
+  .home-sigil { font-size: 3.5rem; margin-bottom: 0.5rem; }
+  .home-title { font-size: clamp(2.8rem, 15vw, 4.5rem); }
+  .home-subtitle { font-size: 0.75rem; letter-spacing: 0.3em; margin: 0.5rem 0 0.3rem; }
+  .home-divider { width: 200px; margin: 1rem auto; }
+  .home-tagline { font-size: 0.9rem; margin-bottom: 1.5rem; line-height: 1.7; }
+
+  /* Grid de secciones: 2 columnas en móvil */
+  .sections-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    width: 100%;
+  }
+  .section-btn { padding: 1.3rem 0.75rem; gap: 0.5rem; border-radius: 6px; }
+  .btn-icon { font-size: 2.6rem; }
+  .btn-label { font-size: 0.78rem; letter-spacing: 0.05em; }
+  .btn-desc { font-size: 0.68rem; line-height: 1.3; }
+
+  /* Secciones internas */
+  .section-page { padding: 1rem 0.85rem; }
+
+  /* Header de página */
+  .page-header { gap: 0.6rem; margin-bottom: 1.25rem; padding-bottom: 1rem; flex-wrap: wrap; }
+  .page-title { font-size: clamp(1.2rem, 5vw, 1.8rem); flex: 1; }
+  .back-btn { font-size: 0.7rem; padding: 0.45rem 0.75rem; }
+
+  /* Bloques editables */
+  .editable-block { padding: 1rem; margin-bottom: 1rem; }
+  .editable-block h3 { font-size: 0.85rem; margin-bottom: 0.75rem; }
+  .editable-block p, .editable-block [contenteditable] { font-size: 0.88rem; }
+
+  /* Personajes: grid 2 columnas */
+  #chars-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+  .char-card { padding: 1rem 0.75rem; }
+  .char-avatar { width: 60px; height: 60px; font-size: 1.8rem; margin-bottom: 0.6rem; }
+  .char-name { font-size: 0.85rem; }
+  .char-role { font-size: 0.7rem; }
+  .char-type-badge { font-size: 0.58rem; padding: 2px 6px; }
+
+  /* Detalle de personaje */
+  .char-detail-header { gap: 0.75rem; flex-wrap: wrap; }
+  .char-detail-avatar { width: 70px; height: 70px; font-size: 2.2rem; }
+  .char-detail-name { font-size: 1.4rem; }
+  .char-detail-role { font-size: 0.82rem; }
+
+  /* Viewer */
+  .char-viewer { padding: 1rem; min-height: 260px; }
+  .char-image-area { width: 160px; height: 240px; }
+  .char-silhouette { font-size: 6rem; }
+  .char-view-nav { font-size: 1rem; padding: 0.4rem 0.55rem; }
+
+  /* Tabs del personaje: scrolleables sin wrap */
+  .char-tabs { gap: 0.2rem; margin: 1rem 0 0.75rem; overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
+  .char-tab { font-size: 0.65rem; padding: 0.45rem 0.65rem; white-space: nowrap; }
+
+  /* Accesorios */
+  .accessories-grid { gap: 0.5rem; }
+  .accessory-item { min-width: 130px; padding: 0.6rem; gap: 0.5rem; }
+  .acc-icon { font-size: 1.3rem; }
+  .acc-name { font-size: 0.7rem; }
+  .acc-desc { font-size: 0.65rem; }
+
+  /* Ideas / Tramas: 1 columna */
+  .ideas-grid { grid-template-columns: 1fr; gap: 0.75rem; }
+  .idea-card { padding: 1rem; }
+  .idea-title { font-size: 0.82rem; }
+  .idea-body { font-size: 0.85rem; }
+
+  /* Técnicas */
+  .tecnica-item { padding: 1rem 1.1rem; }
+  .tecnica-name { font-size: 0.9rem; }
+  .tecnica-owner { font-size: 0.72rem; }
+  .tecnica-desc { font-size: 0.85rem; }
+
+  /* Clanes: 1 columna */
+  .clanes-grid { grid-template-columns: 1fr; gap: 1rem; }
+  .clan-card { padding: 1.1rem; }
+  .clan-symbol { font-size: 2.5rem; margin-bottom: 0.75rem; }
+  .clan-name { font-size: 1rem; }
+  .clan-desc { font-size: 0.85rem; }
+
+  /* Timeline / Historia */
+  .timeline { padding-left: 1.5rem; }
+  .timeline-event { padding: 1rem 1.1rem; margin-bottom: 1.25rem; }
+  .timeline-event::before { left: -2.1rem; font-size: 0.65rem; }
+  .event-era { font-size: 0.65rem; }
+  .event-title { font-size: 0.9rem; }
+  .event-body { font-size: 0.85rem; }
+
+  /* Hotspot panels */
+  .hotspot-panel { width: 170px; padding: 0.75rem; }
+  .hotspot-panel h4 { font-size: 0.75rem; }
+  .hotspot-panel p { font-size: 0.7rem; }
+  .hotspot-dot { width: 26px; height: 26px; font-size: 0.8rem; }
+
+  /* Scrollbar más delgada */
+  ::-webkit-scrollbar { width: 3px; }
+
+  /* Reducir runas para mejor rendimiento */
+  .runa { font-size: 1rem !important; }
+}
+
+/* Pantallas muy pequeñas (≤ 380px) */
+@media (max-width: 380px) {
+  .home-title { font-size: 2.5rem; }
+  .sections-grid { gap: 0.55rem; }
+  .btn-icon { font-size: 2.2rem; }
+  .btn-label { font-size: 0.72rem; }
+  .btn-desc { display: none; }
+  .section-btn { padding: 1.1rem 0.6rem; }
+  .char-tab { font-size: 0.6rem; padding: 0.4rem 0.5rem; }
 }
 </style>
 </head>
