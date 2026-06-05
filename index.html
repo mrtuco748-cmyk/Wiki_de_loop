@@ -370,6 +370,81 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
 .acc-name{font-family:'Cinzel',serif;font-size:0.75rem;color:var(--gold)}
 .acc-desc{font-size:0.7rem;color:var(--text);font-style:italic}
 
+/* ===== ÁRBOL DE HABILIDADES ===== */
+.skills-tree-container {
+  background: var(--dark2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+.skills-controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.skill-btn {
+  background: var(--dark3);
+  border: 1px solid var(--border);
+  color: var(--gold);
+  padding: 0.3rem 0.8rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+.skill-btn:hover {
+  border-color: var(--gold);
+  background: rgba(201,168,76,0.1);
+}
+.skill-btn.danger {
+  border-color: var(--red2);
+  color: #e88;
+}
+.tree-canvas-wrapper {
+  background: radial-gradient(circle, #1a1510, #0d0b08);
+  border-radius: 8px;
+  overflow: auto;
+  min-height: 450px;
+  position: relative;
+}
+#skillCanvas {
+  display: block;
+  background: transparent;
+  cursor: default;
+}
+.skill-edit-panel {
+  position: fixed;
+  background: var(--dark);
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  padding: 1rem;
+  z-index: 1000;
+  min-width: 240px;
+  box-shadow: 0 5px 30px rgba(0,0,0,0.5);
+}
+.skill-edit-panel input,
+.skill-edit-panel textarea {
+  width: 100%;
+  background: var(--dark2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  padding: 0.3rem;
+  margin-bottom: 0.5rem;
+  border-radius: 4px;
+  font-family: 'IM Fell English', serif;
+}
+.skill-edit-panel label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  color: var(--gold);
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
 /* ===== IDEAS grid ===== */
 .ideas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem}
 .idea-card{
@@ -770,6 +845,7 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
       <button class="char-tab" onclick="charTab(this,'historia')">Historia</button>
       <button class="char-tab" onclick="charTab(this,'accesorios')">Accesorios</button>
       <button class="char-tab" onclick="charTab(this,'habilidades')">Habilidades</button>
+      <button class="char-tab" onclick="charTab(this,'skillsTree')">🌳 Árbol</button>
     </div>
 
     <div id="tab-info" class="char-tab-content active">
@@ -799,6 +875,19 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
         <h3>Poderes y Habilidades</h3>
         <div id="cd-powers" contenteditable="true" class="event-body"></div>
         <span class="edit-hint">✎ Editable</span>
+      </div>
+    </div>
+    <div id="tab-skillsTree" class="char-tab-content">
+      <div class="skills-tree-container">
+        <div class="skills-controls">
+          <button class="skill-btn" onclick="addRootSkill()">+ Agregar Raíz</button>
+          <button class="skill-btn" onclick="toggleEditMode()" id="editModeBtn">✎ Mover/Editar</button>
+          <button class="skill-btn danger" onclick="deleteSelectedNode()">🗑 Eliminar</button>
+          <span style="font-size:0.65rem;color:var(--gold);margin-left:auto">💡 Click derecho → Agregar evolución</span>
+        </div>
+        <div class="tree-canvas-wrapper">
+          <canvas id="skillCanvas" width="900" height="500" style="width:100%;height:auto"></canvas>
+        </div>
       </div>
     </div>
   </div>
@@ -920,7 +1009,17 @@ const charData={
       {x:50,y:15,emoji:'🧠',title:'Neuronas Espejo',desc:'Su mente copia cualquier técnica al instante',dir:'right'},
       {x:50,y:55,emoji:'⚡',title:'Esencia Divina',desc:'La esencia del dios caído vive en su interior',dir:'left'},
       {x:50,y:75,emoji:'🦵',title:'Piernas Regeneradas',desc:'Cada herida las vuelve más resistentes',dir:'right'},
-    ]
+    ],
+    skillTree: {
+      roots: [
+        { id: 'r1', name: 'Neuronas Espejo', desc: 'Copia cualquier acción con solo verla', x: 200, y: 100, evolutions: [
+            { id: 'e1', name: 'Reflejo Mejorado', desc: 'Copia más rápido', x: 350, y: 220, parentId: 'r1' }
+          ] },
+        { id: 'r2', name: 'Regeneración Endurecida', desc: 'Se regenera más resistente', x: 600, y: 100, evolutions: [
+            { id: 'e2', name: 'Regeneración Total', desc: 'Cualquier herida se regenera', x: 600, y: 250, parentId: 'r2' }
+          ] }
+      ]
+    }
   },
   sincer:{
     name:'Sincer',emoji:'👑',
@@ -938,7 +1037,12 @@ const charData={
       {x:50,y:15,emoji:'👑',title:'Porte Noble',desc:'Nacido en la nobleza, su presencia lo delata',dir:'right'},
       {x:50,y:45,emoji:'❤',title:'Corazón Corrompido',desc:'Antes puro, ahora consumido por el odio',dir:'left'},
       {x:50,y:70,emoji:'⚔',title:'Espada',desc:'Portada con la elegancia de quien fue entrenado',dir:'right'},
-    ]
+    ],
+    skillTree: {
+      roots: [
+        { id: 's1', name: 'Voluntad Inquebrantable', desc: 'Nunca se rinde', x: 300, y: 150, evolutions: [] }
+      ]
+    }
   },
   tunami:{
     name:'Tunami',emoji:'🌊',
@@ -955,7 +1059,12 @@ const charData={
     hotspots:[
       {x:50,y:20,emoji:'😤',title:'Expresión Presumida',desc:'Siempre convencido de su superioridad',dir:'right'},
       {x:50,y:50,emoji:'🌊',title:'Centro del Reflejo',desc:'El origen de su técnica defensiva',dir:'left'},
-    ]
+    ],
+    skillTree: {
+      roots: [
+        { id: 't1', name: 'Reflejo Total', desc: 'Desvía cualquier ataque', x: 400, y: 150, evolutions: [] }
+      ]
+    }
   },
   eleya:{
     name:'Eleya',emoji:'⚡',
@@ -972,7 +1081,8 @@ const charData={
     hotspots:[
       {x:50,y:20,emoji:'🔮',title:'Mente Rota',desc:'El trauma cambió su percepción para siempre',dir:'right'},
       {x:50,y:50,emoji:'⚡',title:'Poder Divino',desc:'Energía sin límite que emana de su ser',dir:'left'},
-    ]
+    ],
+    skillTree: { roots: [] }
   },
   polos:{
     name:'Polos',emoji:'🎭',
@@ -989,7 +1099,8 @@ const charData={
     hotspots:[
       {x:50,y:25,emoji:'🎭',title:'Almas en Conflicto',desc:'Múltiples personalidades batallando por el control',dir:'right'},
       {x:50,y:60,emoji:'📿',title:'Maldición Familiar',desc:'La fuente de su condición y sus poderes',dir:'left'},
-    ]
+    ],
+    skillTree: { roots: [] }
   },
   haski:{
     name:'Haski',emoji:'🏹',
@@ -1007,7 +1118,8 @@ const charData={
     hotspots:[
       {x:50,y:20,emoji:'👁',title:'Ojo del Cazador',desc:'Visión y atención analítica extraordinaria',dir:'right'},
       {x:50,y:55,emoji:'🏹',title:'Arsenal',desc:'Artefactos de múltiples civilizaciones',dir:'left'},
-    ]
+    ],
+    skillTree: { roots: [] }
   }
 };
 
@@ -1015,7 +1127,7 @@ let currentChar=null;let currentView=0;let openPanel=null;
 
 function openChar(id){
   const c=charData[id];if(!c) return;
-  // Inicializar estructuras nuevas si no existen
+  if(!c.skillTree) c.skillTree = { roots: [] };
   if(!c.images) c.images = [null, null, null];
   if(!c.viewHotspots) c.viewHotspots = [c.hotspots||[], [], []];
   currentChar=id;currentView=0;openPanel=null;editingHotspots=false;addingHotspot=false;
@@ -1032,6 +1144,7 @@ function openChar(id){
   renderAccessories(c.accessories);
   renderView();
   charTab(document.querySelector('.char-tab'), 'info');
+  setTimeout(() => drawSkillTree(), 100);
 }
 
 function closeChar(){
@@ -1043,12 +1156,11 @@ function closeChar(){
 // ─── VISTAS E IMÁGENES ────────────────────────────────────────────────────────
 
 const VIEW_NAMES = ['Frontal','Lateral','Posterior'];
-let editingHotspots = false; // modo edición de burbujas
-let addingHotspot   = false; // modo "click para colocar"
+let editingHotspots = false;
+let addingHotspot   = false;
 
 function renderView(){
   const c = charData[currentChar]; if(!c) return;
-  // Asegurar array de imágenes
   if(!c.images) c.images = [null, null, null];
   if(!c.viewHotspots) c.viewHotspots = [c.hotspots||[], [], []];
 
@@ -1061,12 +1173,10 @@ function renderView(){
   sil.textContent = c.emoji;
   lbl.textContent = VIEW_NAMES[currentView];
 
-  // Imagen de la vista actual
   const imgData = c.images[currentView];
   if(img) img.remove();
   if(zone) zone.remove();
 
-  // Crear zona de carga
   const newZone = document.createElement('div');
   newZone.className = 'img-upload-zone' + (imgData ? ' has-image' : '');
   newZone.innerHTML = `
@@ -1088,7 +1198,6 @@ function renderView(){
       reader.readAsDataURL(file);
     });
   } else {
-    // Mostrar imagen
     const imgEl = document.createElement('img');
     imgEl.className = 'char-uploaded-img';
     imgEl.src = imgData;
@@ -1096,10 +1205,8 @@ function renderView(){
     sil.style.display = 'none';
   }
 
-  // Emitir/ocultar silueta
   sil.style.display = imgData ? 'none' : 'block';
 
-  // Limpiar y redibujar hotspots
   area.querySelectorAll('.hotspot,.hotspot-panel,.hotspot-edit-panel,.add-hs-hint').forEach(e=>e.remove());
   openPanel = null;
   const hs = c.viewHotspots[currentView] || [];
@@ -1123,7 +1230,6 @@ function area_clearPanels(){
   openPanel = null;
 }
 
-// Controles encima del viewer (imagen + burbujas)
 function _updateViewerControls(){
   const viewer = document.getElementById('char-viewer');
   viewer.querySelector('.viewer-controls')?.remove();
@@ -1151,7 +1257,6 @@ function toggleEditHotspots(){
   area_clearPanels();
   const area = document.getElementById('char-img-area');
   area.classList.remove('adding-hotspot');
-  // Redibujar hotspots con o sin handles de arrastre
   const c = charData[currentChar]; if(!c) return;
   if(!c.viewHotspots) c.viewHotspots = [[],[],[]];
   area.querySelectorAll('.hotspot,.add-hs-hint').forEach(e=>e.remove());
@@ -1194,12 +1299,9 @@ function _onAreaClickAddHotspot(e){
   const idx = c.viewHotspots[currentView].length - 1;
   area.querySelectorAll('.hotspot').forEach(e=>e.remove());
   renderHotspots(c.viewHotspots[currentView]);
-  // Abrir editor del nuevo hotspot
   setTimeout(() => openHotspotEditor(idx), 100);
   _updateViewerControls();
 }
-
-// ─── RENDER HOTSPOTS ───────────────────────────────────────────────────────────
 
 function renderHotspots(hotspots){
   const area = document.getElementById('char-img-area');
@@ -1211,12 +1313,9 @@ function renderHotspots(hotspots){
     dot.innerHTML = `<div class="hotspot-dot">${h.emoji}</div>`;
 
     if(editingHotspots){
-      // Drag para mover
       _makeDraggable(dot, area, i);
-      // Click: abrir editor
       dot.addEventListener('click', e => { e.stopPropagation(); openHotspotEditor(i); });
     } else {
-      // Modo lectura: mostrar panel info
       dot.addEventListener('click', e => { e.stopPropagation(); showPanel(h, dot, i); });
     }
     area.appendChild(dot);
@@ -1269,8 +1368,6 @@ function _makeDraggable(dotEl, area, idx){
   dotEl.addEventListener('touchstart', onDown, {passive:true});
 }
 
-// ─── PANEL LECTURA ─────────────────────────────────────────────────────────────
-
 function showPanel(h, dotEl, idx){
   area_clearPanels();
   if(openPanel===idx){ openPanel=null; return; }
@@ -1278,7 +1375,6 @@ function showPanel(h, dotEl, idx){
   const panel = document.createElement('div');
   panel.className = 'hotspot-panel';
   const area = document.getElementById('char-img-area');
-  const aW = area.offsetWidth;
   const dotLeft = parseFloat(dotEl.style.left);
   const isRight = dotLeft < 60;
   panel.style.cssText = `top:${h.y}%;${isRight?'left:calc('+h.x+'% + 20px)':'right:calc('+(100-h.x)+'% + 20px)'};transform:translateY(-50%)`;
@@ -1289,8 +1385,6 @@ function showPanel(h, dotEl, idx){
   area.appendChild(panel);
 }
 function closePanel(e){ e.stopPropagation(); area_clearPanels(); }
-
-// ─── EDITOR DE HOTSPOT ─────────────────────────────────────────────────────────
 
 function openHotspotEditor(idx){
   area_clearPanels();
@@ -1355,109 +1449,79 @@ function charTab(btn,tab){
   if(btn) btn.classList.add('active');
   const el=document.getElementById('tab-'+tab);
   if(el) el.classList.add('active');
+  if(tab === 'skillsTree') setTimeout(() => drawSkillTree(), 50);
 }
 </script>
 
 <script>
 /* =============================================
    SISTEMA DE SECCIONES — Historia, Tramas, Ideas, Clanes, Técnicas
-   Datos por defecto + localStorage + agregar/editar/eliminar
    ============================================= */
 
-// ── DATOS POR DEFECTO ────────────────────────
-
 const DEFAULT_HISTORIA = [
-  { era:'El Origen', title:'Los Dioses y sus Universos', body:'Cada dios controla un universo y un planeta. El dios de este mundo es Hades, aunque ningún mortal lo sabe, pues los dioses jamás interactúan con sus creaciones. En este planeta medieval, alejado de la Tierra, la nobleza, el castillo y la religión dominan todo con mano de hierro.' },
-  { era:'El Encuentro', title:'Tradden y Sincer: El Inicio de Todo', body:'Un campesino pobre y un joven noble se conocen y forjan una amistad que trasciende las clases. Ambos comienzan sus caminos como personas buenas, de corazón noble, sin imaginar en qué se convertirán. De niños jugaban juntos junto a un árbol en un barranco alto, al borde de un río. Ese árbol crecería con ellos.' },
-  { era:'El Punto de Quiebre', title:'La Caída de un Dios', body:'En una guerra entre dioses, uno de ellos cae. Tradden absorbe su esencia, y el dios entra a vivir dentro de él. Este evento cambia todo: Tradden descubre las injusticias del mundo — la corrupción del gobierno, la crueldad de la nobleza, la hipocresía de la religión. Con su nuevo poder, decide matar a todos los dioses para que el universo sea un lugar más justo y pacífico.' },
-  { era:'La Distopía', title:'El Intercambio de Almas', body:'Tradden se vuelve malo en su cruzada, pero lentamente va reconociendo sus errores y regresando a quien era. Sincer, en cambio, hace el camino inverso: comienza siendo bueno y se corrompe poco a poco, acumulando un odio extremo hacia Tradden. El árbol que los vio crecer juntos empieza a deteriorarse y caer por el barranco cuando su amistad se rompe.' },
-  { era:'El Conflicto Central', title:'El Cazador de Dioses', body:'Tradden mata, aprende y crece en su trayectoria hacia los dioses. A su paso conoce nuevas habilidades, aliados y enemigos. Una organización crea con la esencia de Hades un guerrero con poderes divinos, el matadioses, diseñado específicamente para cazarlo. Pero Tradden siempre encuentra la manera de anticiparse.' }
+  { era:'El Origen', title:'Los Dioses y sus Universos', body:'Cada dios controla un universo y un planeta. El dios de este mundo es Hades, aunque ningún mortal lo sabe, pues los dioses jamás interactúan con sus creaciones.' },
+  { era:'El Encuentro', title:'Tradden y Sincer', body:'Un campesino pobre y un joven noble se conocen y forjan una amistad que trasciende las clases.' },
+  { era:'El Punto de Quiebre', title:'La Caída de un Dios', body:'En una guerra entre dioses, uno de ellos cae. Tradden absorbe su esencia.' }
 ];
 
 const DEFAULT_TRAMAS = [
-  { title:'Eleya Habla con Dios', body:'Eleya muere y logra hablar con el mismísimo Dios en una conversación cara a cara. Luego regresa a la vida. Esta trama revela aspectos del funcionamiento divino del universo que ningún otro personaje conoce.' },
-  { title:'El Matadioses', body:'Una organización hace experimentos con la esencia de Hades para crear armas y a un guerrero con poderes divinos con el único objetivo de dar caza y poner fin a Tradden. Una carrera entre el cazador y el cazado.' },
-  { title:'El Aprendiz de Tradden', body:'Un joven que escuchó sobre la filosofía y el plan de Tradden con los dioses busca convertirse en su discípulo. La relación maestro-alumno pone a prueba los valores de Tradden en su etapa de redención.' },
-  { title:'Árbol de Tradden y Sincer', body:'El árbol en el barranco alto al borde del río simboliza su amistad. Creció con ellos desde niños. Cuando la relación se destruye, el árbol empieza a marchitarse y a caer. Un testigo silencioso del destino de ambos.' },
-  { title:'Counter del Matadioses', body:'Tradden lucha contra alguien que usa el matadioses. Se anticipa y empuja el pie delantero del rival, desestabilizando el golpe. El matadioses requiere pisar con firmeza para redirigir la energía desde los pies al puño — al desestabilizarlo, pierde casi toda su potencia.' },
-  { title:'Sentencia Indefinidamente Infinita', body:'Un castigo que solo termina cuando todas las personas en el mundo parpadeen al mismo tiempo. Una condena que puede durar eternidades o resolverse en un instante — nadie lo sabe.' },
-  { title:'Equipo Invencible', body:'Un grupo que juntos son devastadores por sus técnicas y ataques combinados, pero que por separado son débiles. Su poder no está en los individuos sino en la sinergia perfecta entre ellos.' },
-  { title:'Entrenamiento Mental', body:'Un clan o persona que puede entrar a la mente de alguien para entrenarlo desde adentro. Dentro de la mente pasa mucho tiempo, pero en la realidad casi no transcurre nada. Tiempo dilatado para el aprendizaje.' },
-  { title:'Comida Infinitamente Rica', body:'Una carne que se vuelve más rica con el paso del tiempo. Llevan más de 1000 años con ella y su sabor es casi infinito. Una secta se formó en torno a esta reliquia gastronómica, reservada para los de alto rango.' }
+  { title:'Eleya Habla con Dios', body:'Eleya muere y logra hablar con el mismísimo Dios.' },
+  { title:'El Matadioses', body:'Una organización crea un guerrero con poderes divinos para cazar a Tradden.' }
 ];
 
 const DEFAULT_IDEAS = [
-  { title:'Computadoras a Base de Neuronas', body:'Tecnología avanzada que utiliza neuronas como base de procesamiento. Agrega tu visión de cómo funcionaría esto en el mundo de Loop...' },
-  { title:'Género Femenino Más Fuerte', body:'Una premisa donde las mujeres son física o espiritualmente más poderosas. Detalla cómo esto afecta la sociedad medieval del universo...' },
-  { title:'Tecnología que Prevé Enfermedades', body:'Una tecnología que puede predecir las enfermedades que podría desarrollar un cuerpo antes de que ocurran. ¿Quién tiene acceso a ella? ¿Cómo cambia el poder?' }
+  { title:'Computadoras a Base de Neuronas', body:'Tecnología avanzada que utiliza neuronas como base de procesamiento.' },
+  { title:'Género Femenino Más Fuerte', body:'Las mujeres son física o espiritualmente más poderosas.' }
 ];
 
 const DEFAULT_CLANES = [
-  { symbol:'✦✦✦✦', name:'Clan 4 Puntos', desc:'Esta familia se caracteriza por los "4 puntos": cuatro reservas de energía representadas como tatuajes en el cuerpo. Al llegar a cierta edad, se le otorga un punto al miembro para que aprenda a usarlo. A medida que mejora sus capacidades, va ganando más puntos hasta completar los cuatro. Son estrictos y rectos en sus doctrinas, pilares, estudios y entrenamientos.' },
-  { symbol:'👁', name:'Organización Matadioses', desc:'Una organización oscura que experimenta con la esencia de Hades para crear armas y guerreros con poderes divinos. Su único objetivo: dar caza a Tradden. Sus métodos son tan crueles como sus ambiciones.' }
+  { symbol:'✦✦✦✦', name:'Clan 4 Puntos', desc:'Cuatro reservas de energía representadas como tatuajes.' },
+  { symbol:'👁', name:'Organización Matadioses', desc:'Experimentos con esencia de Hades.' }
 ];
 
 const DEFAULT_TECNICAS = [
-  { name:'Neurona Espejo', owner:'Tradden', desc:'Al ver una acción nueva, las neuronas de Tradden activan un modo espejo que replica en su mente lo que está viendo en tiempo real. Esto le permite copiar cualquier habilidad o técnica al instante con tan solo observarla una vez.' },
-  { name:'Regeneración Endurecida', owner:'Tradden', desc:'Al perder o ser destruida una parte de su cuerpo, esta se regenera volviéndose más resistente que antes. Cada herida lo hace más fuerte. Una habilidad que convierte el daño en fortaleza.' },
-  { name:'Reflejo Total', owner:'Tunami', desc:'Los ataques recibidos son desviados y reflejados sin que Tunami reciba daño alguno. Generalmente los redirige hacia el cielo. Su nombre en hausa significa "reflejo", y su técnica lo encarna a la perfección.' },
-  { name:'Poder Infinito', owner:'Eleya', desc:'Tras contactar por casualidad con lo divino, Eleya obtiene poderes abrumadores y aparentemente ilimitados. Al estar completamente fuera de sí, no tiene inhibiciones para su uso. El origen exacto y sus límites son desconocidos para todos.' },
-  { name:'Las 4 Reservas', owner:'Clan 4 Puntos', desc:'Cuatro reservas de energía representadas como tatuajes en puntos específicos del cuerpo. Se otorgan progresivamente y permiten ejecutar técnicas especiales. La maestría de los cuatro puntos es el pináculo del poder del clan.' },
-  { name:'Matadioses', owner:'Guerrero creado por la Organización', desc:'Una técnica que requiere pisar con firmeza para redirigir toda la energía desde los pies hacia el puño en un golpe devastador capaz de dañar a seres divinos. Su debilidad: si el pie delantero es desestabilizado, pierde casi toda su potencia.' },
-  { name:'Almas Múltiples', owner:'Polos', desc:'Por una maldición familiar, Polos alberga múltiples almas de sus antepasados. Entre ellas: una chica depravada, un viejo sabio, un guerrero feroz y un hombre de enorme fuerza. Cada alma tiene su propia personalidad y puede manifestarse.' }
+  { name:'Neurona Espejo', owner:'Tradden', desc:'Copia cualquier habilidad al instante.' },
+  { name:'Reflejo Total', owner:'Tunami', desc:'Desvía cualquier ataque.' }
 ];
-
-// ── STORAGE HELPERS ───────────────────────────
 
 function sLoad(key, def){ try{ const v=localStorage.getItem(key); return v ? JSON.parse(v) : def; }catch(e){ return def; } }
 function sSave(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
-function sectionSave(){ 
-  sSave('loop_historia',  _readSection('historia-timeline',  'historia'));
-  sSave('loop_tramas',    _readSection('tramas-grid',        'tramas'));
-  sSave('loop_ideas',     _readSection('ideas-grid',         'ideas'));
-  sSave('loop_clanes',    _readClanesSection());
-  sSave('loop_tecnicas',  _readTecnicasSection());
-}
 
-// Lee datos actuales del DOM para persistirlos
 function _readSection(gridId, type){
   const grid = document.getElementById(gridId);
   if(!grid) return [];
   if(type === 'historia'){
     return [...grid.querySelectorAll('.timeline-event')].map(el=>({
-      era:   el.querySelector('.event-era')?.textContent   || '',
+      era: el.querySelector('.event-era')?.textContent || '',
       title: el.querySelector('.event-title')?.textContent || '',
-      body:  el.querySelector('.event-body')?.textContent  || ''
+      body: el.querySelector('.event-body')?.textContent || ''
     }));
   }
   return [...grid.querySelectorAll('.idea-card')].map(el=>({
     title: el.querySelector('.idea-title')?.textContent || '',
-    body:  el.querySelector('.idea-body')?.textContent  || ''
+    body: el.querySelector('.idea-body')?.textContent || ''
   }));
 }
+
 function _readClanesSection(){
   const grid = document.getElementById('clanes-grid');
   if(!grid) return [];
   return [...grid.querySelectorAll('.clan-card')].map(el=>({
     symbol: el.querySelector('.clan-symbol')?.textContent || '✦',
-    name:   el.querySelector('.clan-name')?.textContent   || '',
-    desc:   el.querySelector('.clan-desc')?.textContent   || ''
+    name: el.querySelector('.clan-name')?.textContent || '',
+    desc: el.querySelector('.clan-desc')?.textContent || ''
   }));
 }
+
 function _readTecnicasSection(){
   const list = document.getElementById('tecnicas-list');
   if(!list) return [];
   return [...list.querySelectorAll('.tecnica-item')].map(el=>({
-    name:  el.querySelector('.tecnica-name')?.childNodes[0]?.textContent?.trim() || '',
+    name: el.querySelector('.tecnica-name')?.childNodes[0]?.textContent?.trim() || '',
     owner: el.querySelector('.tecnica-owner')?.textContent || '',
-    desc:  el.querySelector('.tecnica-desc')?.textContent  || ''
+    desc: el.querySelector('.tecnica-desc')?.textContent || ''
   }));
 }
-
-// Auto-guardado cada 2 segundos
-setInterval(sectionSave, 2000);
-
-// ── RENDERIZADORES ─────────────────────────────
 
 function renderHistoria(items){
   const tl = document.getElementById('historia-timeline');
@@ -1466,13 +1530,11 @@ function renderHistoria(items){
     const el = document.createElement('div');
     el.className = 'timeline-event';
     el.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.3rem">
-        <div class="event-era" contenteditable="true" title="Editar era">${item.era}</div>
-        <button onclick="deleteItem('historia',${i})" title="Eliminar evento"
-          style="background:none;border:none;color:var(--red2);cursor:pointer;font-size:0.85rem;opacity:0.6;padding:0 0 0 1rem;flex-shrink:0" 
-          onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">✕</button>
+      <div style="display:flex;justify-content:space-between">
+        <div class="event-era" contenteditable="true">${item.era}</div>
+        <button onclick="deleteItem('historia',${i})" style="background:none;border:none;color:var(--red2);cursor:pointer">✕</button>
       </div>
-      <div class="event-title" contenteditable="true" title="Editar título">${item.title}</div>
+      <div class="event-title" contenteditable="true">${item.title}</div>
       <div class="event-body" contenteditable="true">${item.body}</div>`;
     tl.appendChild(el);
   });
@@ -1485,11 +1547,9 @@ function renderCards(gridId, items){
     const el = document.createElement('div');
     el.className = 'idea-card';
     el.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
-        <div class="idea-title" contenteditable="true" title="Editar título">${item.title}</div>
-        <button onclick="deleteItem('${gridId==='tramas-grid'?'tramas':'ideas'}',${i})" title="Eliminar"
-          style="background:none;border:none;color:var(--red2);cursor:pointer;font-size:0.85rem;opacity:0.6;padding:0 0 0 0.75rem;flex-shrink:0"
-          onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">✕</button>
+      <div style="display:flex;justify-content:space-between">
+        <div class="idea-title" contenteditable="true">${item.title}</div>
+        <button onclick="deleteItem('${gridId==='tramas-grid'?'tramas':'ideas'}',${i})" style="background:none;border:none;color:var(--red2);cursor:pointer">✕</button>
       </div>
       <div class="idea-body" contenteditable="true">${item.body}</div>`;
     grid.appendChild(el);
@@ -1503,13 +1563,9 @@ function renderClanes(items){
     const el = document.createElement('div');
     el.className = 'clan-card';
     el.innerHTML = `
-      <div style="display:flex;justify-content:flex-end">
-        <button onclick="deleteClan(${i})" title="Eliminar clan"
-          style="background:none;border:none;color:var(--red2);cursor:pointer;font-size:0.85rem;opacity:0.6;padding:0"
-          onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">✕</button>
-      </div>
-      <span class="clan-symbol" contenteditable="true" title="Editar símbolo">${item.symbol}</span>
-      <div class="clan-name" contenteditable="true" title="Editar nombre">${item.name}</div>
+      <div style="display:flex;justify-content:flex-end"><button onclick="deleteClan(${i})" style="background:none;border:none;color:var(--red2);cursor:pointer">✕</button></div>
+      <span class="clan-symbol" contenteditable="true">${item.symbol}</span>
+      <div class="clan-name" contenteditable="true">${item.name}</div>
       <div class="clan-desc" contenteditable="true">${item.desc}</div>`;
     grid.appendChild(el);
   });
@@ -1522,36 +1578,19 @@ function renderTecnicas(items){
     const el = document.createElement('div');
     el.className = 'tecnica-item';
     el.innerHTML = `
-      <div class="tecnica-name" style="display:flex;justify-content:space-between;align-items:center">
-        <span contenteditable="true" onclick="event.stopPropagation()" title="Editar nombre">${item.name}</span>
-        <div style="display:flex;align-items:center;gap:0.5rem">
-          <span class="tecnica-chevron">▼</span>
-          <button onclick="event.stopPropagation();deleteTecnica(${i})" title="Eliminar técnica"
-            style="background:none;border:none;color:var(--red2);cursor:pointer;font-size:0.85rem;opacity:0.6;padding:0"
-            onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">✕</button>
-        </div>
-      </div>
-      <div class="tecnica-owner" contenteditable="true" onclick="event.stopPropagation()" title="Editar personaje/clan">${item.owner}</div>
-      <div class="tecnica-desc" contenteditable="true" onclick="event.stopPropagation()">${item.desc}</div>`;
-    el.addEventListener('click', function(e){
-      if(e.target.closest('[contenteditable]') || e.target.tagName==='BUTTON') return;
-      toggleTecnica(el);
-    });
+      <div class="tecnica-name"><span contenteditable="true">${item.name}</span><span class="tecnica-chevron">▼</span><button onclick="deleteTecnica(${i})" style="background:none;border:none;color:var(--red2);cursor:pointer">✕</button></div>
+      <div class="tecnica-owner" contenteditable="true">${item.owner}</div>
+      <div class="tecnica-desc" contenteditable="true">${item.desc}</div>`;
+    el.addEventListener('click', function(e){ if(e.target.closest('[contenteditable]')) return; toggleTecnica(el); });
     list.appendChild(el);
   });
 }
 
-// ── AGREGAR ────────────────────────────────────
-
 function addHistoriaEvent(){
   const items = _readSection('historia-timeline','historia');
-  items.push({ era:'Nueva Era', title:'Nuevo Evento', body:'Describe este momento del lore...' });
+  items.push({ era:'Nueva Era', title:'Nuevo Evento', body:'Descripción...' });
   renderHistoria(items);
   sSave('loop_historia', items);
-  // scroll al final
-  const tl = document.getElementById('historia-timeline');
-  tl.lastElementChild?.scrollIntoView({ behavior:'smooth', block:'center' });
-  tl.lastElementChild?.querySelector('.event-title')?.focus();
 }
 
 function addCard(section){
@@ -1561,33 +1600,21 @@ function addCard(section){
   items.push({ title:'Nuevo Título', body:'Escribe aquí...' });
   renderCards(key, items);
   sSave(storageKey, items);
-  const grid = document.getElementById(key);
-  grid.lastElementChild?.scrollIntoView({ behavior:'smooth', block:'center' });
-  grid.lastElementChild?.querySelector('.idea-title')?.focus();
 }
 
 function addClan(){
   const items = _readClanesSection();
-  items.push({ symbol:'⊕', name:'Nuevo Clan', desc:'Describe este clan o familia...' });
+  items.push({ symbol:'⊕', name:'Nuevo Clan', desc:'Descripción...' });
   renderClanes(items);
   sSave('loop_clanes', items);
-  const grid = document.getElementById('clanes-grid');
-  grid.lastElementChild?.scrollIntoView({ behavior:'smooth', block:'center' });
-  grid.lastElementChild?.querySelector('.clan-name')?.focus();
 }
 
 function addTecnica(){
   const items = _readTecnicasSection();
-  items.push({ name:'Nueva Técnica', owner:'Personaje o Clan', desc:'Describe el poder o habilidad...' });
+  items.push({ name:'Nueva Técnica', owner:'Personaje', desc:'Descripción...' });
   renderTecnicas(items);
   sSave('loop_tecnicas', items);
-  const list = document.getElementById('tecnicas-list');
-  const last = list.lastElementChild;
-  last?.scrollIntoView({ behavior:'smooth', block:'center' });
-  last?.querySelector('[contenteditable]')?.focus();
 }
-
-// ── ELIMINAR ───────────────────────────────────
 
 function deleteItem(section, i){
   const isHistoria = section === 'historia';
@@ -1613,47 +1640,31 @@ function deleteTecnica(i){
   sSave('loop_tecnicas', items);
 }
 
-// ── INICIALIZACIÓN ─────────────────────────────
-
 window.addEventListener('load', () => {
-  renderHistoria( sLoad('loop_historia',  DEFAULT_HISTORIA) );
+  renderHistoria( sLoad('loop_historia', DEFAULT_HISTORIA) );
   renderCards('tramas-grid', sLoad('loop_tramas', DEFAULT_TRAMAS) );
-  renderCards('ideas-grid',  sLoad('loop_ideas',  DEFAULT_IDEAS) );
-  renderClanes(   sLoad('loop_clanes',    DEFAULT_CLANES) );
-  renderTecnicas( sLoad('loop_tecnicas',  DEFAULT_TECNICAS) );
+  renderCards('ideas-grid', sLoad('loop_ideas', DEFAULT_IDEAS) );
+  renderClanes( sLoad('loop_clanes', DEFAULT_CLANES) );
+  renderTecnicas( sLoad('loop_tecnicas', DEFAULT_TECNICAS) );
 });
 </script>
 
 <script>
 /* =============================================
-   SISTEMA DE PERSONAJES — VERSIÓN LIMPIA
-   Reemplaza todos los scripts anteriores de personajes.
-   Un solo bloque, sin conflictos.
+   SISTEMA DE PERSONAJES
    ============================================= */
 
-// Mapa: id -> elemento DOM de la tarjeta
 const cardElements = {};
 
-// ── Crear personaje nuevo ──────────────────────
 function createCharacter(){
   const id = 'char_' + Date.now();
-
   charData[id] = {
-    name: 'Nuevo Personaje',
-    emoji: '🧍',
-    role: 'Rol del personaje',
-    type: 'secundario',
-    info: '',
-    nameOrigin: '',
-    story: '',
-    powers: '',
-    accessories: [],
-    views: ['Frontal','Lateral','Posterior'],
-    hotspots: [],
-    images: [null, null, null],
-    viewHotspots: [[], [], []]
+    name: 'Nuevo Personaje', emoji: '🧍', role: 'Rol del personaje', type: 'secundario',
+    info: '', nameOrigin: '', story: '', powers: '', accessories: [],
+    views: ['Frontal','Lateral','Posterior'], hotspots: [],
+    images: [null, null, null], viewHotspots: [[], [], []],
+    skillTree: { roots: [] }
   };
-
   _addCardToGrid(id);
   openChar(id);
 }
@@ -1669,22 +1680,11 @@ function _addCardToGrid(id){
     <div class="char-avatar">${c.emoji}</div>
     <div class="char-name">${c.name}</div>
     <div class="char-role">${c.role}</div>
-    <span class="char-type-badge badge-${c.type||'secundario'}">${_typeLabel(c.type)}</span>`;
+    <span class="char-type-badge badge-${c.type||'secundario'}">${c.type==='principal'?'Principal':'Secundario'}</span>`;
   grid.appendChild(card);
   cardElements[id] = card;
 }
 
-function _typeLabel(t){
-  const map = { principal:'Principal', secundario:'Secundario', antagonista:'Antagonista', misterioso:'Misterioso' };
-  return map[t] || 'Secundario';
-}
-
-function _typeBadgeClass(t){
-  const map = { principal:'badge-principal', secundario:'badge-secundario', antagonista:'badge-principal', misterioso:'badge-secundario' };
-  return map[t] || 'badge-secundario';
-}
-
-// Actualiza la tarjeta en el grid desde charData
 function _syncCard(id){
   const card = cardElements[id] || document.querySelector(`[data-char-id="${id}"]`);
   if(!card) return;
@@ -1692,17 +1692,12 @@ function _syncCard(id){
   const av = card.querySelector('.char-avatar');
   const nm = card.querySelector('.char-name');
   const rl = card.querySelector('.char-role');
-  const bd = card.querySelector('.char-type-badge');
   if(av) av.textContent = c.emoji || '🧍';
   if(nm) nm.textContent = c.name || 'Sin nombre';
   if(rl) rl.textContent = c.role || '';
-  if(bd){ bd.textContent = _typeLabel(c.type); bd.className = 'char-type-badge '+_typeBadgeClass(c.type); }
 }
 
-// ── Abrir ficha ────────────────────────────────
-// Guardamos referencia a la función original
 const _openCharBase = openChar;
-
 openChar = function(id){
   _openCharBase(id);
   _buildCharEditor(id);
@@ -1710,97 +1705,59 @@ openChar = function(id){
 
 function _buildCharEditor(id){
   const c = charData[id];
-
-  // Hacer editables nombre y rol en el header
   const cdName = document.getElementById('cd-name');
   const cdRole = document.getElementById('cd-role');
   cdName.contentEditable = true;
   cdRole.contentEditable = true;
-
-  // Eliminar controles viejos para reconstruirlos limpios
   document.getElementById('_char-editor-bar')?.remove();
-
-  // Barra de controles encima de las tabs
   const bar = document.createElement('div');
   bar.id = '_char-editor-bar';
   bar.className = 'editable-block';
   bar.style.cssText = 'display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center;margin-bottom:1rem';
   bar.innerHTML = `
-    <label style="font-family:Cinzel,serif;font-size:0.75rem;color:var(--gold);letter-spacing:0.1em">EMOJI
-      <input id="_char-emoji" maxlength="4" value="${c.emoji||'🧍'}"
-        style="margin-left:0.5rem;width:55px;background:var(--dark2);border:1px solid var(--border);
-               color:var(--text2);padding:4px 6px;border-radius:3px;font-size:1.1rem;text-align:center">
+    <label style="font-family:Cinzel,serif;font-size:0.75rem;color:var(--gold)">EMOJI
+      <input id="_char-emoji" maxlength="4" value="${c.emoji||'🧍'}" style="margin-left:0.5rem;width:55px;background:var(--dark2);border:1px solid var(--border);color:var(--text2);padding:4px 6px;border-radius:3px">
     </label>
-    <label style="font-family:Cinzel,serif;font-size:0.75rem;color:var(--gold);letter-spacing:0.1em">TIPO
-      <select id="_char-type"
-        style="margin-left:0.5rem;background:var(--dark2);border:1px solid var(--border);
-               color:var(--text2);padding:4px 8px;border-radius:3px;font-family:Cinzel,serif;font-size:0.72rem">
-        <option value="principal"  ${(c.type==='principal' ?'selected':'')}>Principal</option>
-        <option value="secundario" ${(!c.type||c.type==='secundario'?'selected':'')}>Secundario</option>
-        <option value="antagonista"${(c.type==='antagonista'?'selected':'')}>Antagonista</option>
-        <option value="misterioso" ${(c.type==='misterioso'?'selected':'')}>Misterioso</option>
+    <label style="font-family:Cinzel,serif;font-size:0.75rem;color:var(--gold)">TIPO
+      <select id="_char-type" style="margin-left:0.5rem;background:var(--dark2);border:1px solid var(--border);color:var(--text2);padding:4px 8px;border-radius:3px">
+        <option value="principal" ${c.type==='principal'?'selected':''}>Principal</option>
+        <option value="secundario" ${(!c.type||c.type==='secundario')?'selected':''}>Secundario</option>
       </select>
     </label>
     <button class="back-btn" onclick="saveCurrentCharacter()" style="margin-left:auto">💾 Guardar</button>
     <button class="back-btn" onclick="deleteCharacter('${id}')" style="border-color:var(--red2);color:#e88">🗑 Eliminar</button>`;
-
   const tabs = document.querySelector('.char-tabs');
   tabs.parentNode.insertBefore(bar, tabs);
-
-  // Eventos en tiempo real
   document.getElementById('_char-emoji').oninput = _liveSync;
   document.getElementById('_char-type').onchange = _liveSync;
   cdName.oninput = _liveSync;
   cdRole.oninput = _liveSync;
 }
 
-// Sincronización en vivo: datos → tarjeta (sin necesidad de guardar para ver el cambio)
 function _liveSync(){
   if(!currentChar || !charData[currentChar]) return;
   const c = charData[currentChar];
-
   const emojiEl = document.getElementById('_char-emoji');
-  const typeEl  = document.getElementById('_char-type');
-  const nameEl  = document.getElementById('cd-name');
-  const roleEl  = document.getElementById('cd-role');
-
+  const typeEl = document.getElementById('_char-type');
+  const nameEl = document.getElementById('cd-name');
+  const roleEl = document.getElementById('cd-role');
   if(emojiEl) { c.emoji = emojiEl.value || '🧍'; document.getElementById('cd-avatar').textContent = c.emoji; }
-  if(typeEl)  c.type = typeEl.value;
-  if(nameEl)  c.name = nameEl.textContent || 'Sin nombre';
-  if(roleEl)  c.role = roleEl.textContent;
-
+  if(typeEl) c.type = typeEl.value;
+  if(nameEl) c.name = nameEl.textContent || 'Sin nombre';
+  if(roleEl) c.role = roleEl.textContent;
   _syncCard(currentChar);
 }
 
-// ── Guardar ────────────────────────────────────
 function saveCurrentCharacter(){
   if(!currentChar || !charData[currentChar]) return;
   const c = charData[currentChar];
-
-  _liveSync(); // asegura estado actualizado
-
-  c.info       = document.getElementById('cd-info')?.textContent       || c.info;
+  _liveSync();
+  c.info = document.getElementById('cd-info')?.textContent || c.info;
   c.nameOrigin = document.getElementById('cd-name-origin')?.textContent || c.nameOrigin;
-  c.story      = document.getElementById('cd-story')?.textContent       || c.story;
-  c.powers     = document.getElementById('cd-powers')?.textContent      || c.powers;
-
-  // Accesorios
-  const accNodes = document.querySelectorAll('#acc-list .accessory-item');
-  if(accNodes.length){
-    c.accessories = [...accNodes].map(x=>({
-      icon: x.querySelector('.acc-icon')?.textContent  || '✨',
-      name: x.querySelector('.acc-name')?.textContent  || '',
-      desc: x.querySelector('.acc-desc')?.textContent  || ''
-    }));
-  }
-
-  // Imágenes y hotspots ya se guardan en tiempo real en charData
-  // (images y viewHotspots se actualizan directamente)
-
+  c.story = document.getElementById('cd-story')?.textContent || c.story;
+  c.powers = document.getElementById('cd-powers')?.textContent || c.powers;
   _syncCard(currentChar);
   _saveToStorage();
-
-  // Feedback visual breve
   const btn = document.querySelector('#_char-editor-bar .back-btn');
   if(btn){ const orig=btn.textContent; btn.textContent='✔ Guardado'; setTimeout(()=>btn.textContent=orig,1500); }
 }
@@ -1809,40 +1766,30 @@ function _saveToStorage(){
   try{ localStorage.setItem('loop_characters', JSON.stringify(charData)); }catch(e){}
 }
 
-// ── Eliminar personaje ─────────────────────────
 function deleteCharacter(id){
   if(!id || !charData[id]) return;
-  const nombre = charData[id].name || 'este personaje';
-  if(!confirm(`¿Eliminar a ${nombre}? Esta acción no se puede deshacer.`)) return;
-
-  // Quitar tarjeta del DOM
+  if(!confirm(`¿Eliminar a ${charData[id].name}?`)) return;
   const card = cardElements[id] || document.querySelector(`[data-char-id="${id}"]`);
   if(card) card.remove();
   delete cardElements[id];
   delete charData[id];
-
   _saveToStorage();
   closeChar();
 }
 
-// ── Accesorios editables ───────────────────────
 renderAccessories = function(accs){
   const el = document.getElementById('cd-accessories');
-  el.innerHTML = `
-    <button class="back-btn" onclick="addAccessory()" style="margin-bottom:0.75rem">+ Accesorio</button>
-    <div id="acc-list" class="accessories-grid"></div>`;
-
+  el.innerHTML = `<button class="back-btn" onclick="addAccessory()" style="margin-bottom:0.75rem">+ Accesorio</button><div id="acc-list" class="accessories-grid"></div>`;
   const list = document.getElementById('acc-list');
   accs.forEach((a, i) => {
     const item = document.createElement('div');
     item.className = 'accessory-item';
     item.innerHTML = `
-      <span class="acc-icon" contenteditable="true" title="Editar emoji">${a.icon||'✨'}</span>
+      <span class="acc-icon" contenteditable="true">${a.icon||'✨'}</span>
       <div style="flex:1">
         <div class="acc-name" contenteditable="true">${a.name||'Accesorio'}</div>
         <div class="acc-desc" contenteditable="true">${a.desc||'Descripción'}</div>
-        <button class="back-btn" style="margin-top:4px;font-size:0.65rem;border-color:var(--red2);color:#e88"
-          onclick="removeAccessory(${i})">Eliminar</button>
+        <button class="back-btn" style="margin-top:4px;font-size:0.65rem;border-color:var(--red2);color:#e88" onclick="removeAccessory(${i})">Eliminar</button>
       </div>`;
     list.appendChild(item);
   });
@@ -1860,33 +1807,322 @@ function removeAccessory(i){
   renderAccessories(charData[currentChar].accessories);
 }
 
-// ── Cargar desde localStorage al inicio ───────
 window.addEventListener('load', () => {
-  // Marcar las tarjetas predefinidas con su id
   document.querySelectorAll('#chars-grid .char-card').forEach(card => {
-    const onclick = card.getAttribute('onclick') || card.onclick?.toString() || '';
+    const onclick = card.getAttribute('onclick') || '';
     const match = onclick.match(/openChar\('([^']+)'\)/);
     if(match){ card.dataset.charId = match[1]; cardElements[match[1]] = card; }
   });
-
   try {
     const saved = localStorage.getItem('loop_characters');
-    if(!saved) return;
-    const data = JSON.parse(saved);
-
-    Object.keys(data).forEach(id => {
-      if(charData[id]){
-        // Personaje existente: actualizar datos y tarjeta
-        Object.assign(charData[id], data[id]);
-        _syncCard(id);
-      } else {
-        // Personaje personalizado guardado: reconstruir
-        charData[id] = data[id];
-        _addCardToGrid(id);
-      }
-    });
-  } catch(e){ console.warn('Error cargando personajes:', e); }
+    if(saved){
+      const data = JSON.parse(saved);
+      Object.keys(data).forEach(id => {
+        if(charData[id]) Object.assign(charData[id], data[id]);
+        else { charData[id] = data[id]; _addCardToGrid(id); }
+        if(!charData[id].skillTree) charData[id].skillTree = { roots: [] };
+      });
+    }
+  } catch(e){}
 });
+</script>
+
+<script>
+/* =============================================
+   ÁRBOL DE HABILIDADES
+   ============================================= */
+
+let editMode = false;
+let selectedNodeId = null;
+let editPanel = null;
+let isDragging = false;
+let dragNode = null;
+let skillCanvas = null;
+let skillCtx = null;
+
+function drawSkillTree() {
+  if (!currentChar) return;
+  const char = charData[currentChar];
+  if (!char.skillTree) char.skillTree = { roots: [] };
+  
+  const canvasEl = document.getElementById('skillCanvas');
+  if (!canvasEl) return;
+  
+  skillCanvas = canvasEl;
+  skillCtx = canvasEl.getContext('2d');
+  
+  const wrapper = canvasEl.parentElement;
+  const width = Math.max(900, wrapper.clientWidth - 20);
+  const height = 500;
+  canvasEl.width = width;
+  canvasEl.height = height;
+  canvasEl.style.width = '100%';
+  canvasEl.style.height = 'auto';
+  
+  skillCtx.clearRect(0, 0, width, height);
+  
+  // Dibujar líneas de evolución
+  char.skillTree.roots.forEach(root => {
+    if (root.evolutions) {
+      root.evolutions.forEach(evo => {
+        skillCtx.beginPath();
+        skillCtx.moveTo(root.x, root.y);
+        skillCtx.lineTo(evo.x, evo.y);
+        skillCtx.strokeStyle = '#c9a84c';
+        skillCtx.setLineDash([8, 6]);
+        skillCtx.lineWidth = 2;
+        skillCtx.stroke();
+        skillCtx.setLineDash([]);
+      });
+    }
+  });
+  
+  // Dibujar nodos
+  char.skillTree.roots.forEach(root => {
+    drawNode(root.x, root.y, root.name, root.id === selectedNodeId);
+    if (root.evolutions) {
+      root.evolutions.forEach(evo => drawNode(evo.x, evo.y, evo.name, evo.id === selectedNodeId));
+    }
+  });
+}
+
+function drawNode(x, y, name, isSelected) {
+  if (!skillCtx) return;
+  skillCtx.beginPath();
+  skillCtx.arc(x, y, 28, 0, 2 * Math.PI);
+  skillCtx.fillStyle = isSelected ? '#2a1f0a' : '#1e1a14';
+  skillCtx.fill();
+  skillCtx.strokeStyle = isSelected ? '#e8c97a' : '#c9a84c';
+  skillCtx.lineWidth = 2.5;
+  skillCtx.stroke();
+  skillCtx.font = 'bold 11px "Cinzel", serif';
+  skillCtx.fillStyle = '#e8c97a';
+  skillCtx.textAlign = 'center';
+  const displayName = name.length > 14 ? name.slice(0, 12) + '...' : name;
+  skillCtx.fillText(displayName, x, y + 4);
+}
+
+function addRootSkill() {
+  if (!currentChar) return;
+  const char = charData[currentChar];
+  if (!char.skillTree) char.skillTree = { roots: [] };
+  const newId = 'root_' + Date.now() + '_' + Math.random();
+  const newRoot = {
+    id: newId, name: 'Nueva Habilidad', desc: 'Descripción de la habilidad',
+    x: 150 + (char.skillTree.roots.length * 180), y: 120, evolutions: []
+  };
+  char.skillTree.roots.push(newRoot);
+  saveCharactersToLocal();
+  drawSkillTree();
+  setTimeout(() => editNode(newId), 100);
+}
+
+function addEvolution(parentId) {
+  if (!currentChar) return;
+  const char = charData[currentChar];
+  let parent = null;
+  for (const root of char.skillTree.roots) {
+    if (root.id === parentId) parent = root;
+    if (root.evolutions) {
+      const found = root.evolutions.find(e => e.id === parentId);
+      if (found) parent = found;
+    }
+  }
+  if (!parent) return;
+  const newId = 'evo_' + Date.now() + '_' + Math.random();
+  const newEvo = {
+    id: newId, name: 'Nueva Evolución', desc: 'Descripción de la evolución',
+    x: parent.x + 100, y: parent.y + 110, parentId: parent.id
+  };
+  if (!parent.evolutions) parent.evolutions = [];
+  parent.evolutions.push(newEvo);
+  saveCharactersToLocal();
+  drawSkillTree();
+  setTimeout(() => editNode(newId), 100);
+}
+
+function editNode(nodeId) {
+  if (!currentChar) return;
+  const char = charData[currentChar];
+  let node = null;
+  for (const root of char.skillTree.roots) {
+    if (root.id === nodeId) node = root;
+    if (root.evolutions) {
+      const found = root.evolutions.find(e => e.id === nodeId);
+      if (found) node = found;
+    }
+  }
+  if (!node) return;
+  if (editPanel) editPanel.remove();
+  editPanel = document.createElement('div');
+  editPanel.className = 'skill-edit-panel';
+  editPanel.innerHTML = `
+    <label>🏷️ NOMBRE</label>
+    <input id="nodeNameInput" value="${escapeHtml(node.name)}">
+    <label>📖 DESCRIPCIÓN</label>
+    <textarea id="nodeDescInput" rows="3">${escapeHtml(node.desc)}</textarea>
+    <div style="display:flex;gap:0.5rem;margin-top:0.5rem">
+      <button class="skill-btn" onclick="saveNodeEdit('${nodeId}')">💾 Guardar</button>
+      <button class="skill-btn" onclick="closeEditPanel()">❌ Cerrar</button>
+      ${node.parentId ? `<button class="skill-btn danger" onclick="deleteNode('${nodeId}')">🗑 Eliminar</button>` : ''}
+    </div>`;
+  document.body.appendChild(editPanel);
+  const rect = document.querySelector('.skills-tree-container')?.getBoundingClientRect();
+  if (rect) { editPanel.style.left = rect.right + 15 + 'px'; editPanel.style.top = rect.top + 100 + 'px'; }
+  else { editPanel.style.left = '50%'; editPanel.style.top = '50%'; editPanel.style.transform = 'translate(-50%, -50%)'; }
+}
+
+function saveNodeEdit(nodeId) {
+  if (!currentChar) return;
+  const char = charData[currentChar];
+  let node = null;
+  for (const root of char.skillTree.roots) {
+    if (root.id === nodeId) node = root;
+    if (root.evolutions) {
+      const found = root.evolutions.find(e => e.id === nodeId);
+      if (found) node = found;
+    }
+  }
+  if (node) {
+    node.name = document.getElementById('nodeNameInput')?.value || node.name;
+    node.desc = document.getElementById('nodeDescInput')?.value || node.desc;
+    saveCharactersToLocal();
+    drawSkillTree();
+  }
+  closeEditPanel();
+}
+
+function deleteNode(nodeId) {
+  if (!currentChar) return;
+  const char = charData[currentChar];
+  for (let i = 0; i < char.skillTree.roots.length; i++) {
+    if (char.skillTree.roots[i].id === nodeId) {
+      char.skillTree.roots.splice(i, 1);
+      saveCharactersToLocal();
+      drawSkillTree();
+      closeEditPanel();
+      return;
+    }
+    if (char.skillTree.roots[i].evolutions) {
+      const idx = char.skillTree.roots[i].evolutions.findIndex(e => e.id === nodeId);
+      if (idx !== -1) {
+        char.skillTree.roots[i].evolutions.splice(idx, 1);
+        saveCharactersToLocal();
+        drawSkillTree();
+        closeEditPanel();
+        return;
+      }
+    }
+  }
+}
+
+function deleteSelectedNode() {
+  if (selectedNodeId) deleteNode(selectedNodeId);
+  selectedNodeId = null;
+}
+
+function closeEditPanel() {
+  if (editPanel) editPanel.remove();
+  editPanel = null;
+}
+
+function toggleEditMode() {
+  editMode = !editMode;
+  const btn = document.getElementById('editModeBtn');
+  if (btn) btn.textContent = editMode ? '✓ Modo edición' : '✎ Mover/Editar';
+  if (!editMode) { isDragging = false; dragNode = null; }
+}
+
+function saveCharactersToLocal() {
+  try { localStorage.setItem('loop_characters', JSON.stringify(charData)); } catch(e) {}
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>]/g, function(m) {
+    if (m === '&') return '&amp;';
+    if (m === '<') return '&lt;';
+    if (m === '>') return '&gt;';
+    return m;
+  });
+}
+
+// Eventos del canvas
+function setupCanvasEvents() {
+  const canvas = document.getElementById('skillCanvas');
+  if (!canvas) return;
+  
+  canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+  
+  canvas.addEventListener('mousedown', (e) => {
+    if (!currentChar) return;
+    const char = charData[currentChar];
+    if (!char.skillTree) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const mouseX = (e.clientX - rect.left) * scaleX;
+    const mouseY = (e.clientY - rect.top) * scaleY;
+    
+    let clickedNode = null;
+    for (const root of char.skillTree.roots) {
+      const dist = Math.hypot(mouseX - root.x, mouseY - root.y);
+      if (dist < 30) clickedNode = root;
+      if (root.evolutions) {
+        for (const evo of root.evolutions) {
+          const dist2 = Math.hypot(mouseX - evo.x, mouseY - evo.y);
+          if (dist2 < 30) clickedNode = evo;
+        }
+      }
+    }
+    
+    if (clickedNode) {
+      if (e.button === 2) {
+        e.preventDefault();
+        addEvolution(clickedNode.id);
+      } else if (editMode) {
+        e.preventDefault();
+        isDragging = true;
+        dragNode = clickedNode;
+        selectedNodeId = clickedNode.id;
+        drawSkillTree();
+      } else {
+        selectedNodeId = clickedNode.id;
+        drawSkillTree();
+        editNode(clickedNode.id);
+      }
+    } else {
+      selectedNodeId = null;
+      drawSkillTree();
+      closeEditPanel();
+    }
+  });
+  
+  window.addEventListener('mousemove', (e) => {
+    if (!editMode || !isDragging || !dragNode) return;
+    const canvas = document.getElementById('skillCanvas');
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    let mouseX = (e.clientX - rect.left) * scaleX;
+    let mouseY = (e.clientY - rect.top) * scaleY;
+    mouseX = Math.max(40, Math.min(canvas.width - 40, mouseX));
+    mouseY = Math.max(40, Math.min(canvas.height - 40, mouseY));
+    dragNode.x = mouseX;
+    dragNode.y = mouseY;
+    saveCharactersToLocal();
+    drawSkillTree();
+  });
+  
+  window.addEventListener('mouseup', () => {
+    isDragging = false;
+    dragNode = null;
+  });
+}
+
+setupCanvasEvents();
 </script>
 
 </body>
