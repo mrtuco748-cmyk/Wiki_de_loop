@@ -671,6 +671,29 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
 
   /* Reducir runas para mejor rendimiento */
   .runa { font-size: 1rem !important; }
+
+  /* Ajustes para móvil del panel de edición */
+@media (max-width: 768px) {
+  .skill-edit-panel {
+    width: 90%;
+    max-width: 280px;
+    left: 5% !important;
+    right: 5% !important;
+    top: 50% !important;
+    transform: translateY(-50%);
+  }
+  .skill-edit-panel .skill-btn {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
+  }
+  .skills-controls {
+    justify-content: center;
+  }
+  .skill-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
+}
 }
 
 /* Pantallas muy pequeñas (≤ 380px) */
@@ -1861,32 +1884,33 @@ function drawSkillTree() {
   
   skillCtx.clearRect(0, 0, width, height);
   
-  // Dibujar líneas de evolución
-  char.skillTree.roots.forEach(root => {
-    if (root.evolutions) {
-      root.evolutions.forEach(evo => {
+  // Dibujar todas las líneas recursivamente
+  function drawLines(node) {
+    if (node.children) {
+      node.children.forEach(child => {
         skillCtx.beginPath();
-        skillCtx.moveTo(root.x, root.y);
-        skillCtx.lineTo(evo.x, evo.y);
+        skillCtx.moveTo(node.x, node.y);
+        skillCtx.lineTo(child.x, child.y);
         skillCtx.strokeStyle = '#c9a84c';
         skillCtx.setLineDash([8, 6]);
         skillCtx.lineWidth = 2;
         skillCtx.stroke();
         skillCtx.setLineDash([]);
+        drawLines(child);
       });
     }
-  });
+  }
+  char.skillTree.roots.forEach(root => drawLines(root));
   
-  // Dibujar nodos
-  char.skillTree.roots.forEach(root => {
-    drawNode(root.x, root.y, root.name, root.id === selectedNodeId);
-    if (root.evolutions) {
-      root.evolutions.forEach(evo => drawNode(evo.x, evo.y, evo.name, evo.id === selectedNodeId));
-    }
-  });
+  // Dibujar todos los nodos recursivamente
+  function drawNodes(node) {
+    drawNodeShape(node.x, node.y, node.name, node.id === selectedNodeId);
+    if (node.children) node.children.forEach(child => drawNodes(child));
+  }
+  char.skillTree.roots.forEach(root => drawNodes(root));
 }
 
-function drawNode(x, y, name, isSelected) {
+function drawNodeShape(x, y, name, isSelected) {
   if (!skillCtx) return;
   skillCtx.beginPath();
   skillCtx.arc(x, y, 28, 0, 2 * Math.PI);
@@ -1906,54 +1930,56 @@ function addRootSkill() {
   if (!currentChar) return;
   const char = charData[currentChar];
   if (!char.skillTree) char.skillTree = { roots: [] };
-  const newId = 'root_' + Date.now() + '_' + Math.random();
-  const newRoot = {
-    id: newId, name: 'Nueva Habilidad', desc: 'Descripción de la habilidad',
-    x: 150 + (char.skillTree.roots.length * 180), y: 120, evolutions: []
+  const newId = 'node_' + Date.now() + '_' + Math.random();
+  const newNode = {
+    id: newId, name: 'Nueva Habilidad', desc: 'Descripción',
+    x: 150 + (char.skillTree.roots.length * 180), y: 120,
+    children: []
   };
-  char.skillTree.roots.push(newRoot);
+  char.skillTree.roots.push(newNode);
   saveCharactersToLocal();
   drawSkillTree();
   setTimeout(() => editNode(newId), 100);
 }
 
-function addEvolution(parentId) {
+function addChildToNode(parentId) {
   if (!currentChar) return;
   const char = charData[currentChar];
-  let parent = null;
-  for (const root of char.skillTree.roots) {
-    if (root.id === parentId) parent = root;
-    if (root.evolutions) {
-      const found = root.evolutions.find(e => e.id === parentId);
-      if (found) parent = found;
-    }
-  }
+  let parent = findNodeById(char.skillTree.roots, parentId);
   if (!parent) return;
-  const newId = 'evo_' + Date.now() + '_' + Math.random();
-  const newEvo = {
-    id: newId, name: 'Nueva Evolución', desc: 'Descripción de la evolución',
-    x: parent.x + 100, y: parent.y + 110, parentId: parent.id
+  
+  const newId = 'node_' + Date.now() + '_' + Math.random();
+  const newNode = {
+    id: newId, name: 'Nueva Evolución', desc: 'Descripción',
+    x: parent.x + 100, y: parent.y + 110,
+    children: []
   };
-  if (!parent.evolutions) parent.evolutions = [];
-  parent.evolutions.push(newEvo);
+  if (!parent.children) parent.children = [];
+  parent.children.push(newNode);
   saveCharactersToLocal();
   drawSkillTree();
   setTimeout(() => editNode(newId), 100);
+}
+
+// Función auxiliar para buscar nodo recursivamente
+function findNodeById(nodes, id) {
+  for (let node of nodes) {
+    if (node.id === id) return node;
+    if (node.children) {
+      const found = findNodeById(node.children, id);
+      if (found) return found;
+    }
+  }
+  return null;
 }
 
 function editNode(nodeId) {
   if (!currentChar) return;
   const char = charData[currentChar];
-  let node = null;
-  for (const root of char.skillTree.roots) {
-    if (root.id === nodeId) node = root;
-    if (root.evolutions) {
-      const found = root.evolutions.find(e => e.id === nodeId);
-      if (found) node = found;
-    }
-  }
+  const node = findNodeById(char.skillTree.roots, nodeId);
   if (!node) return;
   if (editPanel) editPanel.remove();
+  
   editPanel = document.createElement('div');
   editPanel.className = 'skill-edit-panel';
   editPanel.innerHTML = `
@@ -1961,28 +1987,60 @@ function editNode(nodeId) {
     <input id="nodeNameInput" value="${escapeHtml(node.name)}">
     <label>📖 DESCRIPCIÓN</label>
     <textarea id="nodeDescInput" rows="3">${escapeHtml(node.desc)}</textarea>
-    <div style="display:flex;gap:0.5rem;margin-top:0.5rem">
+    <div style="display:flex;gap:0.5rem;margin-top:0.5rem;flex-wrap:wrap">
       <button class="skill-btn" onclick="saveNodeEdit('${nodeId}')">💾 Guardar</button>
+      <button class="skill-btn" onclick="addChildToNode('${nodeId}')">➕ Agregar Evolución</button>
+      <button class="skill-btn danger" onclick="deleteNode('${nodeId}')">🗑 Eliminar</button>
       <button class="skill-btn" onclick="closeEditPanel()">❌ Cerrar</button>
-      ${node.parentId ? `<button class="skill-btn danger" onclick="deleteNode('${nodeId}')">🗑 Eliminar</button>` : ''}
-    </div>`;
+    </div>
+  `;
   document.body.appendChild(editPanel);
-  const rect = document.querySelector('.skills-tree-container')?.getBoundingClientRect();
-  if (rect) { editPanel.style.left = rect.right + 15 + 'px'; editPanel.style.top = rect.top + 100 + 'px'; }
-  else { editPanel.style.left = '50%'; editPanel.style.top = '50%'; editPanel.style.transform = 'translate(-50%, -50%)'; }
+  
+  // Posicionar el panel cerca del nodo o centrado en móvil
+  const canvas = document.getElementById('skillCanvas');
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const nodeX = node.x / scaleX + rect.left;
+  const nodeY = node.y / scaleY + rect.top;
+  
+  let left = nodeX + 40;
+  let top = nodeY - 40;
+  if (left + 260 > window.innerWidth) left = nodeX - 300;
+  if (top + 200 > window.innerHeight) top = window.innerHeight - 220;
+  if (left < 10) left = 10;
+  if (top < 10) top = 10;
+  
+  editPanel.style.position = 'fixed';
+  editPanel.style.left = left + 'px';
+  editPanel.style.top = top + 'px';
+  editPanel.style.zIndex = '1001';
 }
 
+function deleteNode(nodeId) {
+  if (!currentChar) return;
+  const char = charData[currentChar];
+  
+  function removeNode(nodes) {
+    for (let i = 0; i < nodes.length; i++) {
+      if (nodes[i].id === nodeId) {
+        nodes.splice(i, 1);
+        return true;
+      }
+      if (nodes[i].children && removeNode(nodes[i].children)) return true;
+    }
+    return false;
+  }
+  removeNode(char.skillTree.roots);
+  saveCharactersToLocal();
+  drawSkillTree();
+  closeEditPanel();
+  selectedNodeId = null;
+}
 function saveNodeEdit(nodeId) {
   if (!currentChar) return;
   const char = charData[currentChar];
-  let node = null;
-  for (const root of char.skillTree.roots) {
-    if (root.id === nodeId) node = root;
-    if (root.evolutions) {
-      const found = root.evolutions.find(e => e.id === nodeId);
-      if (found) node = found;
-    }
-  }
+  const node = findNodeById(char.skillTree.roots, nodeId);
   if (node) {
     node.name = document.getElementById('nodeNameInput')?.value || node.name;
     node.desc = document.getElementById('nodeDescInput')?.value || node.desc;
@@ -1992,29 +2050,6 @@ function saveNodeEdit(nodeId) {
   closeEditPanel();
 }
 
-function deleteNode(nodeId) {
-  if (!currentChar) return;
-  const char = charData[currentChar];
-  for (let i = 0; i < char.skillTree.roots.length; i++) {
-    if (char.skillTree.roots[i].id === nodeId) {
-      char.skillTree.roots.splice(i, 1);
-      saveCharactersToLocal();
-      drawSkillTree();
-      closeEditPanel();
-      return;
-    }
-    if (char.skillTree.roots[i].evolutions) {
-      const idx = char.skillTree.roots[i].evolutions.findIndex(e => e.id === nodeId);
-      if (idx !== -1) {
-        char.skillTree.roots[i].evolutions.splice(idx, 1);
-        saveCharactersToLocal();
-        drawSkillTree();
-        closeEditPanel();
-        return;
-      }
-    }
-  }
-}
 
 function deleteSelectedNode() {
   if (selectedNodeId) deleteNode(selectedNodeId);
@@ -2052,66 +2087,93 @@ function setupCanvasEvents() {
   const canvas = document.getElementById('skillCanvas');
   if (!canvas) return;
   
-  canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+  let touchTimeout = null;
   
-  canvas.addEventListener('mousedown', (e) => {
-    if (!currentChar) return;
-    const char = charData[currentChar];
-    if (!char.skillTree) return;
-    
+  function getCanvasCoords(e) {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-    const mouseX = (e.clientX - rect.left) * scaleX;
-    const mouseY = (e.clientY - rect.top) * scaleY;
+    let clientX, clientY;
+    if (e.touches) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+    const mouseX = (clientX - rect.left) * scaleX;
+    const mouseY = (clientY - rect.top) * scaleY;
+    return { x: mouseX, y: mouseY };
+  }
+  
+  function handleTap(e, isLong = false) {
+    e.preventDefault();
+    if (!currentChar) return;
+    const char = charData[currentChar];
+    if (!char.skillTree) return;
+    const { x: mouseX, y: mouseY } = getCanvasCoords(e);
     
     let clickedNode = null;
-    for (const root of char.skillTree.roots) {
-      const dist = Math.hypot(mouseX - root.x, mouseY - root.y);
-      if (dist < 30) clickedNode = root;
-      if (root.evolutions) {
-        for (const evo of root.evolutions) {
-          const dist2 = Math.hypot(mouseX - evo.x, mouseY - evo.y);
-          if (dist2 < 30) clickedNode = evo;
+    function findNode(nodes) {
+      for (let node of nodes) {
+        const dist = Math.hypot(mouseX - node.x, mouseY - node.y);
+        if (dist < 30) return node;
+        if (node.children) {
+          const found = findNode(node.children);
+          if (found) return found;
         }
       }
+      return null;
     }
+    clickedNode = findNode(char.skillTree.roots);
     
     if (clickedNode) {
-      if (e.button === 2) {
-        e.preventDefault();
-        addEvolution(clickedNode.id);
+      selectedNodeId = clickedNode.id;
+      drawSkillTree();
+      if (isLong || !editMode) {
+        editNode(clickedNode.id);
       } else if (editMode) {
-        e.preventDefault();
         isDragging = true;
         dragNode = clickedNode;
-        selectedNodeId = clickedNode.id;
-        drawSkillTree();
-      } else {
-        selectedNodeId = clickedNode.id;
-        drawSkillTree();
-        editNode(clickedNode.id);
       }
     } else {
       selectedNodeId = null;
       drawSkillTree();
       closeEditPanel();
     }
+  }
+  
+  canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    touchTimeout = setTimeout(() => {
+      handleTap(e, true);
+      touchTimeout = null;
+    }, 500);
+  });
+  canvas.addEventListener('touchend', (e) => {
+    if (touchTimeout) {
+      clearTimeout(touchTimeout);
+      handleTap(e, false);
+    }
+  });
+  canvas.addEventListener('touchmove', (e) => {
+    if (touchTimeout) clearTimeout(touchTimeout);
+  });
+  
+  canvas.addEventListener('mousedown', (e) => {
+    if (e.button === 2) {
+      e.preventDefault();
+      handleTap(e, true);
+    } else {
+      handleTap(e, false);
+    }
   });
   
   window.addEventListener('mousemove', (e) => {
     if (!editMode || !isDragging || !dragNode) return;
-    const canvas = document.getElementById('skillCanvas');
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    let mouseX = (e.clientX - rect.left) * scaleX;
-    let mouseY = (e.clientY - rect.top) * scaleY;
-    mouseX = Math.max(40, Math.min(canvas.width - 40, mouseX));
-    mouseY = Math.max(40, Math.min(canvas.height - 40, mouseY));
-    dragNode.x = mouseX;
-    dragNode.y = mouseY;
+    const { x: mouseX, y: mouseY } = getCanvasCoords(e);
+    dragNode.x = Math.max(40, Math.min(canvas.width - 40, mouseX));
+    dragNode.y = Math.max(40, Math.min(canvas.height - 40, mouseY));
     saveCharactersToLocal();
     drawSkillTree();
   });
