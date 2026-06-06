@@ -697,6 +697,13 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
     font-size: 0.8rem;
   }
 }
+ /* Nodos más grandes en móvil */
+#skillCanvas {
+  touch-action: none; /* mejora el tacto */
+}
+.tree-canvas-wrapper {
+  min-height: 500px;
+}
 }
 
 /* Pantallas muy pequeñas (≤ 380px) */
@@ -1915,22 +1922,27 @@ function drawSkillTree() {
 
 function drawNodeShape(x, y, name, isSelected) {
   if (!skillCtx) return;
+  // Detectar si es móvil (ancho < 768px)
+  const isMobile = window.innerWidth < 768;
+  const radius = isMobile ? 38 : 28;   // círculo más grande en móvil
+  const fontSize = isMobile ? 13 : 11;
+  
   skillCtx.beginPath();
-  skillCtx.arc(x, y, 28, 0, 2 * Math.PI);
+  skillCtx.arc(x, y, radius, 0, 2 * Math.PI);
   skillCtx.fillStyle = isSelected ? '#2a1f0a' : '#1e1a14';
   skillCtx.fill();
   skillCtx.strokeStyle = isSelected ? '#e8c97a' : '#c9a84c';
   skillCtx.lineWidth = 2.5;
   skillCtx.stroke();
   
-  // 👇 TEXTO EN BLANCO (antes era #e8c97a)
-  skillCtx.font = 'bold 11px "Cinzel", serif';
-  skillCtx.fillStyle = '#FFFFFF';   // CAMBIADO A BLANCO
-  skillCtx.shadowBlur = 2;          // pequeña sombra para destacar
+  skillCtx.font = `bold ${fontSize}px "Cinzel", serif`;
+  skillCtx.fillStyle = '#FFFFFF';
+  skillCtx.shadowBlur = 2;
   skillCtx.shadowColor = 'black';
   skillCtx.textAlign = 'center';
-  const displayName = name.length > 14 ? name.slice(0, 12) + '...' : name;
-  skillCtx.fillText(displayName, x, y + 4);
+  const maxLen = isMobile ? 12 : 14;
+  const displayName = name.length > maxLen ? name.slice(0, maxLen - 2) + '..' : name;
+  skillCtx.fillText(displayName, x, y + (isMobile ? 6 : 4));
   skillCtx.shadowBlur = 0;
 }
 
@@ -2095,9 +2107,6 @@ function setupCanvasEvents() {
   const canvas = document.getElementById('skillCanvas');
   if (!canvas) return;
 
-  let activeTouchId = null;
-  let lastMoveTime = 0;
-
   function getCanvasCoords(e) {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
@@ -2120,11 +2129,13 @@ function setupCanvasEvents() {
     if (!currentChar) return null;
     const char = charData[currentChar];
     if (!char.skillTree) return null;
-    
+    const isMobile = window.innerWidth < 768;
+    const hitRadius = isMobile ? 45 : 30; // más fácil en móvil
+
     function search(nodes) {
       for (let node of nodes) {
         const dist = Math.hypot(x - node.x, y - node.y);
-        if (dist < 30) return node;
+        if (dist < hitRadius) return node;
         if (node.children) {
           const found = search(node.children);
           if (found) return found;
@@ -2135,22 +2146,22 @@ function setupCanvasEvents() {
     return search(char.skillTree.roots);
   }
 
-  // === TOUCH / MOUSE START ===
+  // 👇 ESTA ES LA FUNCIÓN QUE NOS INTERESA (onPointerStart)
   function onPointerStart(e) {
     e.preventDefault();
     const coords = getCanvasCoords(e);
     const node = findNodeAtCoord(coords.x, coords.y);
-    
+
     if (node) {
       selectedNodeId = node.id;
       drawSkillTree();
-      
+
       if (editMode) {
-        // Modo edición: arrastrar
+        // Modo edición activado → arrastrar nodo
         isDragging = true;
         dragNode = node;
       } else {
-        // Modo normal: editar (abre panel)
+        // Modo edición desactivado → abrir panel de edición con un toque
         editNode(node.id);
       }
     } else {
@@ -2160,7 +2171,6 @@ function setupCanvasEvents() {
     }
   }
 
-  // === TOUCH / MOUSE MOVE (arrastrar) ===
   function onPointerMove(e) {
     if (!editMode || !isDragging || !dragNode) return;
     e.preventDefault();
@@ -2171,23 +2181,22 @@ function setupCanvasEvents() {
     drawSkillTree();
   }
 
-  // === TOUCH / MOUSE END ===
   function onPointerEnd(e) {
     isDragging = false;
     dragNode = null;
   }
 
-  // Eventos para ratón
+  // Eventos ratón
   canvas.addEventListener('mousedown', onPointerStart);
   window.addEventListener('mousemove', onPointerMove);
   window.addEventListener('mouseup', onPointerEnd);
-  
-  // Eventos para táctil
+
+  // Eventos táctil (importante: passive false para que funcione preventDefault)
   canvas.addEventListener('touchstart', onPointerStart, { passive: false });
   canvas.addEventListener('touchmove', onPointerMove, { passive: false });
   canvas.addEventListener('touchend', onPointerEnd);
-  
-  // Evitar menú contextual en móvil/ratón
+
+  // Evitar menú contextual
   canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 }
 
