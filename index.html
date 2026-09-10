@@ -2206,7 +2206,7 @@ setupCanvasEvents();
 <script>
 const MAP = { loop_historia:'historia_eventos', loop_tramas:'tramas', loop_ideas:'ideas', loop_clanes:'clanes', loop_tecnicas:'tecnicas' };
 const DIRECT_URL='https://hkvwczecoeqmgrqpyxme.supabase.co';
-const DIRECT_KEY='sb_publishable_Ku3yWdzyLQJy1G8gGHJK4A_VE_gCGtQ';
+const DIRECT_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrdndjemVjb2VxbWdycXB5eG1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwMzU4NDAsImV4cCI6MjEwNDYxMTg0MH0.9_HheUQwM1_SSj56BT4DGSg7jv0ZFBllv5MbK89so6Q';
 async function sbFetch(table, method='GET', body){
   // Intenta proxy Vercel primero, fallback directo si falla (Opera GX bloquea supabase.co a veces)
   const tryProxy = async()=>{
