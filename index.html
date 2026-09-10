@@ -729,24 +729,6 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
   .char-tab { font-size: 0.6rem; padding: 0.4rem 0.5rem; }
 }
 
-/* ===== Música de fondo ===== */
-#music-toggle{
-  position:fixed;bottom:14px;right:14px;z-index:9999;
-  background:rgba(13,11,8,0.9);border:1px solid var(--border);color:var(--gold);
-  font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:0.08em;
-  padding:0.5rem 0.9rem;border-radius:999px;cursor:pointer;
-  display:flex;align-items:center;gap:0.5rem;
-  box-shadow:0 4px 20px rgba(0,0,0,0.4);backdrop-filter:blur(6px);
-  transition:all 0.3s
-}
-#music-toggle:hover{border-color:var(--gold);background:rgba(201,168,76,0.12);transform:translateY(-1px)}
-#music-toggle.playing{border-color:var(--gold);color:var(--gold2);box-shadow:0 0 15px var(--glow)}
-#music-toggle.paused{border-color:var(--red2);color:#e88;animation:musicPulse 2s ease-in-out infinite}
-@keyframes musicPulse{0%,100%{box-shadow:0 0 0 rgba(192,57,43,0)}50%{box-shadow:0 0 12px rgba(192,57,43,0.35)}}
-@media (max-width:768px){
-  #music-toggle{bottom:10px;right:10px;font-size:0.65rem;padding:0.45rem 0.75rem}
-}
-
 /* ===== ICON PICKER ===== */
 .icon-picker-overlay{
   position:fixed;top:0;left:0;right:0;bottom:0;z-index:10000;
@@ -847,7 +829,7 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
 
 <div id="app">
 <div id="sync-status" style="position:fixed;top:8px;right:8px;z-index:9999;background:var(--dark3);border:1px solid var(--border);color:var(--gold);font-family:'Cinzel',serif;font-size:0.62rem;padding:4px 8px;border-radius:4px;opacity:0.75;pointer-events:none;max-width:60vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">● Sync...</div>
-<button id="music-toggle" class="paused" title="Reproducir música"><i class="fa-solid fa-volume-xmark"></i> Activar música</button>
+
 
 <!-- ===== HOME ===== -->
 <div id="home-screen">
@@ -1681,7 +1663,6 @@ function charTab(btn,tab){
    SISTEMA DE SECCIONES — Historia, Tramas, Ideas, Clanes, Técnicas
    ============================================= */
 
-function ensureIds(arr){ if(!Array.isArray(arr)) return arr; return arr.map(o=>{ if(!o.id) o.id=(crypto.randomUUID?crypto.randomUUID():'id_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)); return o; }); }
 const DEFAULT_HISTORIA = [
   { era:'El Origen', title:'Los Dioses y sus Universos', body:'Cada dios controla un universo y un planeta. El dios de este mundo es Hades, aunque ningún mortal lo sabe, pues los dioses jamás interactúan con sus creaciones.' },
   { era:'El Encuentro', title:'Tradden y Sincer', body:'Un campesino pobre y un joven noble se conocen y forjan una amistad que trasciende las clases.' },
@@ -2900,6 +2881,14 @@ async function pollOnce(){
       try{
         const cloud = await sbFetch(table,'GET');
         const local = sLoad(lsKey, []);
+        const hasLocal = Array.isArray(local) && local.length > 0;
+        const hasCloud = Array.isArray(cloud) && cloud.length > 0;
+        if(!hasCloud && hasLocal){
+          // nube vacía pero local tiene datos → subir local a nube
+          sSave(lsKey, local);
+          continue;
+        }
+        if(!hasCloud && !hasLocal) continue;
         const cloudNorm = ensureIds(cloud.map(mappers[table])).sort((a,b)=>(a.id||'').localeCompare(b.id||''));
         const localNorm = ensureIds(local).sort((a,b)=>(a.id||'').localeCompare(b.id||''));
         if(JSON.stringify(cloudNorm) !== JSON.stringify(localNorm)){
@@ -2910,7 +2899,7 @@ async function pollOnce(){
           else if(table==='clanes') renderClanes(sLoad(lsKey, DEFAULT_CLANES));
           else if(table==='tecnicas') renderTecnicas(sLoad(lsKey, DEFAULT_TECNICAS));
         }
-      }catch{}
+      }catch(e){ console.warn('[poll]',table,e.message); }
     }
     // personajes polling
     try{

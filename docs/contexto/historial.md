@@ -1,5 +1,27 @@
 # Historial — Wiki_de_loop
 
+## [2026-09-10] - FIX | pollOnce sobreescribía datos locales con nube vacía + ensureIds duplicado
+**Resumen:** Fix crítico: secciones no mostraban datos porque `pollOnce` sobreescribía localStorage con arrays vacíos de Supabase cada 3 segundos
+**Cambios:**
+- `index.html` `pollOnce()`: Agregado guard `hasCloud && hasLocal` — si la nube está vacía pero local tiene datos, sube local en vez de sobreescribir con vacío
+- `index.html` `pollOnce()`: Si ambos vacíos, `continue` (no sobreescribe ni re-renderiza)
+- `index.html` `pollOnce()`: `catch` ahora loggea `console.warn('[poll]',table,e.message)` en vez de fallar silenciosamente
+- `index.html` Eliminado `ensureIds` duplicado en línea 1684 (la definición real está en línea 2624 con el guard `if(!Array.isArray)`)
+- `index.html` Eliminado CSS `#music-toggle` (18 líneas) + `<button id="music-toggle">` del HTML — botón eliminado en D-10 pero quedaban restos
+**Lecciones:** `pollOnce` corría cada 3s y si Supabase retornaba `[]` (tablas vacías o inalcanzables), pisaba localStorage con `[]` → secciones vacías. Fix: solo sobreescribir si la nube tiene datos. `ensureIds` duplicado no causaba bugs pero generaba confusión.
+**Impacto:** Secciones muestran datos correctamente, additiones funcionan, polling no destruye datos locales
+**Relacionado:** decisiones.md D-7, D-8; historial [2026-09-10 20:00]
+
+## [2026-09-10] - UI | Eliminar botón de música
+**Resumen:** Eliminado botón "Activar música" porque resultaba antiestético
+**Cambios:**
+- `index.html` eliminado bloque CSS `#music-toggle` (estilos del botón flotante, estados playing/paused, animación musicPulse)
+- `index.html` eliminado `<button id="music-toggle">` del HTML
+- Música de fondo sigue funcionando automáticamente (autoplay al primer clic/tap/tecla del usuario)
+**Lecciones:** La música puede reproducirse sin un botón visible; el script de autoplay no dependía del botón
+**Impacto:** UI más limpia; música sigue en loop al 40% sin control visual
+**Relacionado:** historial anterior [2026-09-10 18:00]
+
 ## [2026-09-10 20:00] - FIX | Hash-routing seguro + Fix polling _saveTimers
 **Resumen:** Reescrito hash-routing para no interferir con carga de datos + fix bug crítico en polling Supabase
 **Cambios:**
