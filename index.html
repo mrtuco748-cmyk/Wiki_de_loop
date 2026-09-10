@@ -2203,5 +2203,91 @@ function setupCanvasEvents() {
 setupCanvasEvents();
 </script>
 
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+const supabase = createClient('https://ekabsuqctklmbnpefowc.supabase.co','sb_publishable_Ku3yWdzyLQJy1G8gGHJK4A_VE_gCGtQ');
+const MAP = { loop_historia:'historia_eventos', loop_tramas:'tramas', loop_ideas:'ideas', loop_clanes:'clanes', loop_tecnicas:'tecnicas' };
+const QUEUE_KEY='loop_sync_queue';
+const qLoad=()=>{try{return JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]')}catch{return[]}};
+const qSave=q=>localStorage.setItem(QUEUE_KEY,JSON.stringify(q));
+function queue(table,payload){const q=qLoad();q.push({table,payload,ts:Date.now()});qSave(q);}
+async function flushQueue(){
+  if(!navigator.onLine) return;
+  const q=qLoad(); if(!q.length) return;
+  for(const item of q){
+    try{ await supabase.from(item.table).upsert(item.payload); }catch{}
+  }
+  localStorage.removeItem(QUEUE_KEY);
+}
+async function syncTable(lsKey, table, mapper){
+  try{
+    const {data,error} = await supabase.from(table).select('*');
+    if(error||!data) return;
+    if(data.length){
+      const mapped = data.map(mapper).filter(Boolean);
+      if(mapped.length) { localStorage.setItem(lsKey, JSON.stringify(mapped)); }
+    }
+  }catch{}
+}
+// Mappers Supabase -> localStorage format
+const mappers={
+  historia_eventos:r=>({era:r.era||'',title:r.title||'',body:r.body||''}),
+  tramas:r=>({title:r.title||'',body:r.body||''}),
+  ideas:r=>({title:r.title||'',body:r.body||''}),
+  clanes:r=>({symbol:r.symbol||'✦',name:r.name||'',desc:r.description||''}),
+  tecnicas:r=>({name:r.name||'',owner:r.owner||'',desc:r.description||''}),
+};
+// Override sSave to sync
+const _origSave = window.sSave;
+window.sSave = function(key,val){
+  _origSave(key,val);
+  const table=MAP[key];
+  if(!table||!navigator.onLine){
+    if(table) queue(table,val);
+    return;
+  }
+  // fire-and-forget: delete all + insert (simple for prototipo minimal)
+  (async()=>{
+    const rows = Array.isArray(val)?val:[val];
+    const payload = rows.map(r=>{
+      if(table==='historia_eventos') return {title:r.title, body:r.body, era:r.era};
+      if(table==='clanes') return {name:r.name, symbol:r.symbol, description:r.desc};
+      if(table==='tecnicas') return {name:r.name, owner:r.owner, description:r.desc};
+      return {title:r.title, body:r.body};
+    });
+    try{
+      await supabase.from(table).delete().neq('id','00000000-0000-0000-0000-000000000000');
+      if(payload.length) await supabase.from(table).insert(payload);
+    }catch{ queue(table,val); }
+  })();
+};
+// Personajes sync simple (charData)
+window.syncCharactersToCloud = async function(){
+  if(!navigator.onLine) return;
+  try{ for(const [id,c] of Object.entries(window.charData||{})){
+    await supabase.from('personajes').upsert({id, name:c.name, emoji:c.emoji, role:c.role, type:c.type||'secundario', info:c.info, name_origin:c.nameOrigin, story:c.story, powers:c.powers, images:c.images||[null,null,null]});
+  }}catch{}
+};
+// Load from cloud on start if online
+if(navigator.onLine){
+  (async()=>{
+    await Promise.all(Object.entries(MAP).map(([k,t])=>syncTable(k,t,mappers[t])));
+    // re-render after cloud pull
+    try{
+      if(window.renderHistoria) renderHistoria(sLoad('loop_historia', DEFAULT_HISTORIA));
+      if(window.renderCards){ renderCards('tramas-grid', sLoad('loop_tramas', DEFAULT_TRAMAS)); renderCards('ideas-grid', sLoad('loop_ideas', DEFAULT_IDEAS)); }
+      if(window.renderClanes) renderClanes(sLoad('loop_clanes', DEFAULT_CLANES));
+      if(window.renderTecnicas) renderTecnicas(sLoad('loop_tecnicas', DEFAULT_TECNICAS));
+    }catch{}
+    flushQueue();
+  })();
+}
+window.addEventListener('online', flushQueue);
+// Hook guardar personajes
+const _saveChars = window._saveToStorage||window.saveCharactersToLocal;
+if(_saveChars) { const orig=_saveChars; const wrapped=()=>{orig(); window.syncCharactersToCloud();}; window._saveToStorage=wrapped; window.saveCharactersToLocal=wrapped; }
+console.log('[sync] offline-first Supabase vinculado');
+</script>
+
 </body>
 </html>

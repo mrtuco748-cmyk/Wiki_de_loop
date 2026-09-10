@@ -1,0 +1,15 @@
+{
+  "projectMetadata": { "name": "Wiki_de_loop", "description": "Wiki universo LOOP - web app dinámica offline-first con Supabase + Vercel", "type": "web-app", "createdAt": "2026-09-10", "version": "1.0.0" },
+  "discoveryAnswers": {
+    "bloque1": { "projectType": "web-app dinámica", "mainObjective": "Organizar lore LOOP (uso personal) + compartir wiki público", "targetAudience": "autor + lectores públicos", "valueProposition": "Wiki interactiva personajes/clanes/técnicas/tramas" },
+    "bloque2": { "teamSize": "1", "estimatedLOC": "<5k", "environment": "prototipo", "documentationLevel": "minimal", "testingLevel": "none" },
+    "bloque3": { "languages": ["HTML","CSS","JS"], "frameworks": ["vanilla"], "database": "Supabase (nube) + localStorage (offline cache, sync al reconectar)", "infrastructure": "Vercel (deploy)", "externalDependencies": ["Supabase","Google Fonts"] },
+    "bloque4": { "workStyle": "propositivo", "changeSpeed": "rápido (propositivo implica batch)", "namingRules": "camelCase JS, kebab CSS", "nonNegotiables": ["estética dark-fantasy"], "mandatoryTools": [] },
+    "bloque5": { "domainConcepts": ["Personaje","Clan","Técnica","Trama","Historia","Habilidad/Árbol"], "regulations": [], "criticalUserFlows": ["editar personajes/habilidades","navegar/leer lore","crear tramas/historia"], "fragileAreas": ["apartado visual y visibilidad correcta"] },
+    "bloque6": { "projectStatus": "existing", "currentState": "single-file vanilla funcional deployado en Vercel", "historicalDecisions": ["D-1 single-file","D-2 localStorage offline"], "painPoints": ["visual/visibilidad en todos los dispositivos"] }
+  },
+  "agentConfig": { "version": "2.0", "contextPath": "docs/contexto", "validateBeforeEachAction": false, "autoDocumentChanges": true },
+  "qualityChecklist": { "codeConventions": true, "deadImports": true, "duplicateLogic": true, "hardcodedValues": true, "testImpact": false, "commitMessages": true },
+  "lastSession": "2026-09-10",
+  "lastUpdated": "2026-09-10"
+}

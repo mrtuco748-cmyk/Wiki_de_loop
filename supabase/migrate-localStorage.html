@@ -1,0 +1,27 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Migrar localStorage → Supabase</title>
+<body style="font-family:sans-serif;padding:2rem">
+<h1>Migrar datos locales a Supabase</h1>
+<p>Abre este archivo localmente (<b>mismo navegador donde usaste la wiki</b>), conéctate a internet y pulsa Migrar.</p>
+<button id="btn" style="padding:1rem 2rem;font-size:1rem">🚀 Migrar ahora</button>
+<pre id="log" style="background:#111;color:#0f0;padding:1rem;margin-top:1rem;white-space:pre-wrap"></pre>
+<script type="module">
+import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+const supabase = createClient('https://ekabsuqctklmbnpefowc.supabase.co','sb_publishable_Ku3yWdzyLQJy1G8gGHJK4A_VE_gCGtQ');
+const log = m => document.getElementById('log').textContent += m+'\n';
+const get = (k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch{return d}};
+document.getElementById('btn').onclick = async ()=>{
+  const historia=get('loop_historia',[]), tramas=get('loop_tramas',[]), ideas=get('loop_ideas',[]), clanes=get('loop_clanes',[]), tecnicas=get('loop_tecnicas',[]), chars=JSON.parse(localStorage.getItem('loop_characters')||'null');
+  log(`Local: historia=${historia.length} tramas=${tramas.length} ideas=${ideas.length} clanes=${clanes.length} tecnicas=${tecnicas.length} chars=${chars?Object.keys(chars).length:0}`);
+  try{
+    if(historia.length) await supabase.from('historia_eventos').insert(historia.map(r=>({title:r.title,body:r.body,era:r.era}))), log('✓ historia');
+    if(tramas.length) await supabase.from('tramas').insert(tramas.map(r=>({title:r.title,body:r.body}))), log('✓ tramas');
+    if(ideas.length) await supabase.from('ideas').insert(ideas.map(r=>({title:r.title,body:r.body}))), log('✓ ideas');
+    if(clanes.length) await supabase.from('clanes').insert(clanes.map(r=>({name:r.name,symbol:r.symbol,description:r.desc}))), log('✓ clanes');
+    if(tecnicas.length) await supabase.from('tecnicas').insert(tecnicas.map(r=>({name:r.name,owner:r.owner,description:r.desc}))), log('✓ tecnicas');
+    if(chars) for(const [id,c] of Object.entries(chars)){ await supabase.from('personajes').upsert({id,name:c.name,emoji:c.emoji,role:c.role,type:c.type||'secundario',info:c.info,name_origin:c.nameOrigin,story:c.story,powers:c.powers,images:c.images}); log('✓ personaje '+id); }
+    log('✅ Migración completa');
+  }catch(e){ log('Error: '+e.message); }
+};
+</script>
