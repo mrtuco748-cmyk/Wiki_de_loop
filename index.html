@@ -1584,9 +1584,13 @@ function openHotspotEditor(idx){
   panel.className = 'hotspot-edit-panel';
   const isRight = h.x < 60;
   panel.style.cssText = `top:${Math.min(h.y, 70)}%;${isRight?'left:calc('+h.x+'% + 22px)':'right:calc('+(100-h.x)+'% + 22px)'};transform:translateY(-50%)`;
+  const iconDisplay = h.icon && h.icon.startsWith('fa-') ? `<i class="fa-solid ${h.icon}"></i>` : (h.icon || '✨');
   panel.innerHTML = `
 <label>ICONO</label>
-     <input id="_he-icon" value="${h.icon}" style="width:80px;text-align:center;font-size:1.1rem;font-family:monospace">
+     <input type="hidden" id="_he-icon" value="${h.icon}">
+     <button type="button" id="_he-icon-btn" style="display:inline-flex;align-items:center;gap:0.3rem;background:var(--dark2);border:1px solid var(--border);color:var(--text2);padding:4px 8px;border-radius:3px;cursor:pointer;font-size:1rem">
+       ${iconDisplay} <i class="fa-solid fa-caret-down" style="font-size:0.5rem;opacity:0.5"></i>
+     </button>
     <label>TÍTULO</label>
     <input id="_he-title" value="${h.title}">
     <label>DESCRIPCIÓN</label>
@@ -1609,7 +1613,14 @@ function openHotspotEditor(idx){
     renderHotspots(c2.viewHotspots[currentView]);
     _saveToStorage();
   };
-  panel.querySelector('#_he-icon').addEventListener('input', autoSaveHotspot);
+  panel.querySelector('#_he-icon-btn').onclick = ()=>{
+    openIconPicker(h.icon||'fa-sparkles', (val)=>{
+      document.getElementById('_he-icon').value = val;
+      const btn = document.getElementById('_he-icon-btn');
+      btn.innerHTML = (val.startsWith('fa-')?`<i class="fa-solid ${val}"></i>`:val)+' <i class="fa-solid fa-caret-down" style="font-size:0.5rem;opacity:0.5"></i>';
+      autoSaveHotspot();
+    });
+  };
   panel.querySelector('#_he-title').addEventListener('input', autoSaveHotspot);
   panel.querySelector('#_he-desc').addEventListener('input', autoSaveHotspot);
   panel.querySelector('#_he-title').focus();
@@ -1618,7 +1629,8 @@ function openHotspotEditor(idx){
 function saveHotspotEdit(idx){
   const c = charData[currentChar]; if(!c) return;
   const h = c.viewHotspots[currentView][idx]; if(!h) return;
-  h.icon = document.getElementById('_he-icon').value || 'fa-sparkles';
+  const iconEl = document.getElementById('_he-icon');
+  if(iconEl) h.icon = iconEl.value || 'fa-sparkles';
   h.title = document.getElementById('_he-title').value || 'Burbuja';
   h.desc  = document.getElementById('_he-desc').value  || '';
   area_clearPanels();
@@ -1635,6 +1647,7 @@ function deleteHotspot(idx){
   area.querySelectorAll('.hotspot').forEach(e=>e.remove());
   renderHotspots(c.viewHotspots[currentView]);
   _updateViewerControls();
+  _saveToStorage();
 }
 
 function renderAccessories(accs){
@@ -2104,8 +2117,12 @@ function _buildCharEditor(id){
   bar.className = 'editable-block';
   bar.style.cssText = 'display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center;margin-bottom:1rem';
 bar.innerHTML = `
+     <input type="hidden" id="_char-icon" value="${c.icon||'fa-person'}">
      <label style="font-family:Cinzel,serif;font-size:0.75rem;color:var(--gold)">ICONO
-       <input id="_char-icon" value="${c.icon||'fa-person'}" style="margin-left:0.5rem;width:80px;background:var(--dark2);border:1px solid var(--border);color:var(--text2);padding:4px 6px;border-radius:3px;font-family:monospace">
+       <button type="button" id="_char-icon-btn" style="margin-left:0.5rem;display:inline-flex;align-items:center;gap:0.4rem;background:var(--dark2);border:1px solid var(--border);color:var(--text2);padding:4px 10px;border-radius:3px;cursor:pointer;font-family:monospace;font-size:0.85rem">
+         ${c.icon?(c.icon.startsWith('fa-')?'<i class="fa-solid '+c.icon+'"></i>':c.icon):'<i class="fa-solid fa-person"></i>'}
+         <i class="fa-solid fa-caret-down" style="font-size:0.6rem;opacity:0.5"></i>
+       </button>
      </label>
      <label style="font-family:Cinzel,serif;font-size:0.75rem;color:var(--gold)">TIPO
        <select id="_char-type" style="margin-left:0.5rem;background:var(--dark2);border:1px solid var(--border);color:var(--text2);padding:4px 8px;border-radius:3px">
@@ -2117,7 +2134,14 @@ bar.innerHTML = `
      <button class="back-btn" onclick="deleteCharacter('${id}')" style="border-color:var(--red2);color:#e88"><i class="fa-solid fa-trash"></i> Eliminar</button>`;
   const tabs = document.querySelector('.char-tabs');
   tabs.parentNode.insertBefore(bar, tabs);
-  document.getElementById('_char-icon').oninput = _liveSync;
+  document.getElementById('_char-icon-btn').onclick = ()=>{
+    openIconPicker(c.icon||'fa-person', (val)=>{
+      document.getElementById('_char-icon').value = val;
+      const btn = document.getElementById('_char-icon-btn');
+      btn.innerHTML = (val.startsWith('fa-')?'<i class="fa-solid '+val+'"></i>':val)+' <i class="fa-solid fa-caret-down" style="font-size:0.6rem;opacity:0.5"></i>';
+      _liveSync();
+    });
+  };
   document.getElementById('_char-type').onchange = _liveSync;
   cdName.oninput = _liveSync;
   cdRole.oninput = _liveSync;
@@ -2152,8 +2176,14 @@ function saveCurrentCharacter(){
   _saveToStorage();
 }
 
+let _accHsSyncTimer=null;
 function _saveToStorage(){
   try{ localStorage.setItem('loop_characters', JSON.stringify(charData)); }catch(e){}
+  clearTimeout(_accHsSyncTimer);
+  _accHsSyncTimer=setTimeout(()=>{
+    if(window.syncAccessoriesToCloud) window.syncAccessoriesToCloud();
+    if(window.syncHotspotsToCloud) window.syncHotspotsToCloud();
+  },800);
 }
 
 function deleteCharacter(id){
@@ -2174,14 +2204,23 @@ renderAccessories = function(accs){
    accs.forEach((a, i) => {
      const item = document.createElement('div');
      item.className = 'accessory-item';
+     const iconDisplay = a.icon && a.icon.startsWith('fa-') ? `<i class="fa-solid ${a.icon}"></i>` : (a.icon || '✨');
      item.innerHTML = `
-       <span class="acc-icon"><i class="fa-solid ${a.icon||'fa-sparkles'}"></i></span>
+       <span class="acc-icon" style="cursor:pointer" data-acc-idx="${i}">${iconDisplay}</span>
        <div style="flex:1">
          <div class="acc-name" contenteditable="true">${a.name||'Accesorio'}</div>
          <div class="acc-desc" contenteditable="true">${a.desc||'Descripción'}</div>
          <button class="back-btn" style="margin-top:4px;font-size:0.65rem;border-color:var(--red2);color:#e88" onclick="removeAccessory(${i})"><i class="fa-solid fa-trash"></i> Eliminar</button>
        </div>`;
      list.appendChild(item);
+     item.querySelector('.acc-icon').onclick = ()=>{
+       openIconPicker(a.icon||'fa-sparkles', (val)=>{
+         a.icon = val;
+         const iconEl = item.querySelector('.acc-icon');
+         iconEl.innerHTML = val.startsWith('fa-') ? `<i class="fa-solid ${val}"></i>` : val;
+         _saveToStorage();
+       });
+     };
    });
  };
 
@@ -2195,6 +2234,7 @@ function removeAccessory(i){
   if(!currentChar) return;
   charData[currentChar].accessories.splice(i, 1);
   renderAccessories(charData[currentChar].accessories);
+  _saveToStorage();
 }
 
 window.addEventListener('load', () => {
@@ -2656,6 +2696,64 @@ window.syncCharactersToCloud = async function(){
     setSyncStatus('● Personajes guardados');
   }catch(e){ console.error('[sync] personajes',e.message); setSyncStatus('✕ Personajes: '+e.message.slice(0,40),false); }
 };
+// Accesorios sync - upsert por personaje, borra eliminados
+window.syncAccessoriesToCloud = async function(){
+  if(!navigator.onLine) return;
+  try{
+    const payload = [];
+    const localIdsByChar = {};
+    Object.entries(charData||{}).forEach(([charId, c])=>{
+      localIdsByChar[charId] = new Set();
+      (c.accessories||[]).forEach(a=>{
+        if(!a.id) a.id = crypto.randomUUID?crypto.randomUUID():'acc_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+        localIdsByChar[charId].add(a.id);
+        payload.push({id:a.id, personaje_id:charId, icon:a.icon||'fa-sparkles', name:a.name||'', description:a.desc||''});
+      });
+    });
+    if(payload.length) await sbFetch('accesorios','POST',payload,{Prefer:'resolution=merge-duplicates,return=representation'});
+    // cleanup: borrar accesorios en nube que ya no existen localmente
+    try{
+      const cloud = await sbFetch('accesorios','GET');
+      for(const row of cloud){
+        const localSet = localIdsByChar[row.personaje_id];
+        if(!localSet || !localSet.has(row.id)){
+          await fetch(DIRECT_URL+'/rest/v1/accesorios?id=eq.'+row.id,{method:'DELETE',headers:{apikey:DIRECT_KEY,Authorization:'Bearer '+DIRECT_KEY}});
+        }
+      }
+    }catch(e){ console.warn('[sync] accesorios cleanup',e.message); }
+  }catch(e){ console.error('[sync] accesorios',e.message); }
+};
+// Hotspots sync - upsert por personaje+vista, borra eliminados
+window.syncHotspotsToCloud = async function(){
+  if(!navigator.onLine) return;
+  try{
+    const payload = [];
+    const localIdsByCharView = {};
+    Object.entries(charData||{}).forEach(([charId, c])=>{
+      (c.viewHotspots||[[],[],[]]).forEach((viewArr, viewIdx)=>{
+        const key = charId+'_'+viewIdx;
+        localIdsByCharView[key] = new Set();
+        (viewArr||[]).forEach(h=>{
+          if(!h.id) h.id = crypto.randomUUID?crypto.randomUUID():'hs_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+          localIdsByCharView[key].add(h.id);
+          payload.push({id:h.id, personaje_id:charId, view_index:viewIdx, x:h.x, y:h.y, emoji:h.icon||'fa-sparkles', title:h.title||'', description:h.desc||''});
+        });
+      });
+    });
+    if(payload.length) await sbFetch('hotspots','POST',payload,{Prefer:'resolution=merge-duplicates,return=representation'});
+    // cleanup
+    try{
+      const cloud = await sbFetch('hotspots','GET');
+      for(const row of cloud){
+        const key = row.personaje_id+'_'+row.view_index;
+        const localSet = localIdsByCharView[key];
+        if(!localSet || !localSet.has(row.id)){
+          await fetch(DIRECT_URL+'/rest/v1/hotspots?id=eq.'+row.id,{method:'DELETE',headers:{apikey:DIRECT_KEY,Authorization:'Bearer '+DIRECT_KEY}});
+        }
+      }
+    }catch(e){ console.warn('[sync] hotspots cleanup',e.message); }
+  }catch(e){ console.error('[sync] hotspots',e.message); }
+};
 // Load from cloud on start if online - AUTO PUSH si nube vacía
 if(navigator.onLine){
   (async()=>{
@@ -2709,6 +2807,40 @@ if(navigator.onLine){
         if(changed) localStorage.setItem('loop_characters', JSON.stringify(charData));
       }
     }catch(e){ console.error('[sync] personajes init',e.message); }
+    // Accesorios: pull desde nube, merge a charData
+    try{
+      const cloudAcc = await sbFetch('accesorios','GET');
+      if(cloudAcc && cloudAcc.length){
+        let changed=false;
+        cloudAcc.forEach(a=>{
+          if(!charData[a.personaje_id]) return;
+          if(!charData[a.personaje_id].accessories) charData[a.personaje_id].accessories=[];
+          const existing = charData[a.personaje_id].accessories.find(x=>x.id===a.id);
+          const mapped = {id:a.id, icon:a.icon||'fa-sparkles', name:a.name||'', desc:a.description||''};
+          if(!existing){ charData[a.personaje_id].accessories.push(mapped); changed=true; }
+          else if(JSON.stringify(existing)!==JSON.stringify(mapped)){ Object.assign(existing,mapped); changed=true; }
+        });
+        if(changed) localStorage.setItem('loop_characters', JSON.stringify(charData));
+      }
+    }catch(e){ console.error('[sync] accesorios init',e.message); }
+    // Hotspots: pull desde nube, merge a charData
+    try{
+      const cloudHs = await sbFetch('hotspots','GET');
+      if(cloudHs && cloudHs.length){
+        let changed=false;
+        cloudHs.forEach(h=>{
+          if(!charData[h.personaje_id]) return;
+          if(!charData[h.personaje_id].viewHotspots) charData[h.personaje_id].viewHotspots=[[],[],[]];
+          const viewIdx = h.view_index||0;
+          if(!charData[h.personaje_id].viewHotspots[viewIdx]) charData[h.personaje_id].viewHotspots[viewIdx]=[];
+          const existing = charData[h.personaje_id].viewHotspots[viewIdx].find(x=>x.id===h.id);
+          const mapped = {id:h.id, icon:h.emoji||'fa-sparkles', x:h.x, y:h.y, title:h.title||'', desc:h.description||''};
+          if(!existing){ charData[h.personaje_id].viewHotspots[viewIdx].push(mapped); changed=true; }
+          else if(JSON.stringify(existing)!==JSON.stringify(mapped)){ Object.assign(existing,mapped); changed=true; }
+        });
+        if(changed) localStorage.setItem('loop_characters', JSON.stringify(charData));
+      }
+    }catch(e){ console.error('[sync] hotspots init',e.message); }
   })();
 }
 window.addEventListener('online', ()=>location.reload());
@@ -2796,6 +2928,40 @@ async function pollOnce(){
       }
       for(const id of [...localIds]){ if(!cloudIds.has(id) && !id.startsWith('tradden') && !id.startsWith('sincer') && !id.startsWith('tunami') && !id.startsWith('eleya') && !id.startsWith('polos') && !id.startsWith('haski')){ /* si fue borrado en nube, borrar local */ if(charData[id] && cloudChars.length>0){ delete charData[id]; const card=document.querySelector(`[data-char-id="${id}"]`); if(card) card.remove(); changed=true; } } }
       if(changed) localStorage.setItem('loop_characters', JSON.stringify(charData));
+    }catch{}
+    // accesorios polling
+    try{
+      const cloudAcc = await sbFetch('accesorios','GET');
+      if(cloudAcc && cloudAcc.length){
+        let ch=false;
+        cloudAcc.forEach(a=>{
+          if(!charData[a.personaje_id]) return;
+          if(!charData[a.personaje_id].accessories) charData[a.personaje_id].accessories=[];
+          const ex=charData[a.personaje_id].accessories.find(x=>x.id===a.id);
+          const m={id:a.id,icon:a.icon||'fa-sparkles',name:a.name||'',desc:a.description||''};
+          if(!ex){charData[a.personaje_id].accessories.push(m);ch=true;}
+          else if(JSON.stringify(ex)!==JSON.stringify(m)){Object.assign(ex,m);ch=true;}
+        });
+        if(ch) localStorage.setItem('loop_characters', JSON.stringify(charData));
+      }
+    }catch{}
+    // hotspots polling
+    try{
+      const cloudHs = await sbFetch('hotspots','GET');
+      if(cloudHs && cloudHs.length){
+        let ch=false;
+        cloudHs.forEach(h=>{
+          if(!charData[h.personaje_id]) return;
+          if(!charData[h.personaje_id].viewHotspots) charData[h.personaje_id].viewHotspots=[[],[],[]];
+          const vi=h.view_index||0;
+          if(!charData[h.personaje_id].viewHotspots[vi]) charData[h.personaje_id].viewHotspots[vi]=[];
+          const ex=charData[h.personaje_id].viewHotspots[vi].find(x=>x.id===h.id);
+          const m={id:h.id,icon:h.emoji||'fa-sparkles',x:h.x,y:h.y,title:h.title||'',desc:h.description||''};
+          if(!ex){charData[h.personaje_id].viewHotspots[vi].push(m);ch=true;}
+          else if(JSON.stringify(ex)!==JSON.stringify(m)){Object.assign(ex,m);ch=true;}
+        });
+        if(ch) localStorage.setItem('loop_characters', JSON.stringify(charData));
+      }
     }catch{}
   }finally{_polling=false;}
 }

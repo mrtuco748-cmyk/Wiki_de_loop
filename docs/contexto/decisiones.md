@@ -64,15 +64,40 @@
 - **Revisable:** No.
 
 ### D-10: Música de fondo bucle 40% fade + compresión
-- **Fecha:** 2026-09-10 15:00 `0fd2ea4`
-- **Qué:** `index.html:754` `<audio id="bg-music" loop>` con `bg-music.opus` 14.61MB 24k mono (opus) + `bg-music.mp3` 23.89MB 48k mono (mp3) comprimidos vía `ffmpeg libopus/libmp3lame` desde 82.07MB 128k original; `index.html:735` CSS `#music-toggle` + `index.html:2532` JS `TARGET_VOL=0.4` `FADE_IN_MS=3500` `FADE_OUT_MS=800` `fadeTo()` `requestAnimationFrame` `easeOutCubic`, inicio aleatorio `Math.random()*(d-margin*2)+margin` solo primera vez, `loadedmetadata`+`gestureEvents` fallback para autoplay bloqueado, `fadeOutAndPause` en toggle.
-- **Por qué:** Inmersión medieval sin molestar (40% + fade 3.5s), no repetir siempre mismo inicio, peso repo -53% total, compatibilidad opus+mp3 (Safari fallback mp3, Chrome/Firefox opus).
+- **Fecha:** 2026-09-10 15:00 `0fd2ea4` → Actualizado 2026-09-10 18:00 (botón eliminado)
+- **Qué:** `index.html:754` `<audio id="bg-music" loop>` con `bg-music.opus` 14.61MB 24k mono (opus) + `bg-music.mp3` 23.89MB 48k mono (mp3) comprimidos vía `ffmpeg libopus/libmp3lame` desde 82.07MB 128k original; script mínimo de autoplay sin botón: `tryPlay()` + `audio.play().then()` + fade `requestAnimationFrame` a 0.4 volumen, listeners `click/touchstart/keydown` para desbloqueo de autoplay. **Botón de control eliminado** (D-10 original incluía `#music-toggle`).
+- **Por qué:** Inmersión medieval sin molestar (40% + fade 3.5s), no repetir siempre mismo inicio, peso repo -53% total, compatibilidad opus+mp3 (Safari fallback mp3, Chrome/Firefox opus). Botón eliminado por solicitud del usuario (rompía estética).
 - **Alternativas:** `howler.js` (overkill), `Web Audio API` (más control pero más código), single file 128k (82MB pesado), `autoplay muted` sin gesto (mala UX).
-- **Impacto:** Audio persistente en todas las secciones, botón flotante accesible, sin librerías externas, reproducción fiable cross-browser.
-- **Revisable:** Sí. Duración fade parametrizable, volumen user preference en localStorage, posible `Web Audio` para crossfade entre pistas.
+- **Impacto:** Audio persistente en todas las secciones, sin botón visible, sin librerías externas, reproducción fiable cross-browser.
+- **Revisable:** Sí. Duración fade parametrizable, volumen user preference en localStorage, posible `Web Audio` para crossfade entre pistas, considerar control de volumen en settings si se necesita.
+
+### D-11: Sync status discreto (bottom-left, auto-fade)
+- **Fecha:** 2026-09-10 18:00
+- **Qué:** `#sync-status` movido de `top-right` a `bottom-left`, opacidad baja `0.45`, font-size `0.55rem`, `setSyncStatus` hace fade `0.85→0.45` en 2.5s, hover `0.8`, responsive móvil `0.5rem`.
+- **Por qué:** Indicador de sync en top-right rompía estética del tema medieval y resultaba molesto. Ubicación bottom-left con opacidad baja lo hace funcional pero invisible.
+- **Alternativas:** Toast notifications (intrusivo), solo console.log (sin feedback visible), badge en header (ocupaba espacio).
+- **Impacto:** Sync feedback presente pero no interfiere con la UI; aparece brevemente al guardar y se desvanece.
+- **Revisable:** Sí. Posible-toggle para ver estado completo, o integrar en settings.
+
+### D-12: Icon picker visual FA+Emoji reutilizable
+- **Fecha:** 2026-09-10
+- **Qué:** Componente modal reutilizable `openIconPicker(value, callback)` con 2 pestañas: Font Awesome (6 categorías, ~120 iconos) y Emoji Unicode (~200 emojis). Input de texto reemplazado por botón que abre picker en personajes, accesorios y hotspots.
+- **Por qué:** Input de texto requería conocer clases FA (`fa-leaf`, `fa-crown`). Picker visual permite selección直观 sin conocimiento técnico. Reutilizable reduce duplicación.
+- **Alternativas:** Dropdown nativo (poco visual), librería picker externa (dependencia), solo emojis (menos opciones FA).
+- **Impacto:** UX mejorada para selección de iconos; componentes reutilizables; misma estética dark-fantasy.
+- **Revisable:** Sí. Posible agregar búsqueda por nombre, favoritos, o categorías personalizadas.
+
+### D-13: Sync completo accesorios + hotspots a Supabase
+- **Fecha:** 2026-09-10
+- **Qué:** `syncAccessoriesToCloud()` y `syncHotspotsToCloud()` con upsert + cleanup por ID. Pull en init y polling cada 3s. `_saveToStorage()` llama syncs con debounce 800ms.
+- **Por qué:** Tablas `accesorios` y `hotspots` existían en DB pero nunca se syncronizaban. Datos solo en localStorage = pérdida en otro dispositivo.
+- **Alternativas:** Solo sync personajes (datos parciales), sync todo en una tabla JSONB (menos queryable).
+- **Impacto:** Todos los datos de personajes (iconos, accesorios, hotspots) persisten cross-device. Cleanup previene clones.
+- **Revisable:** Sí. Posible sync de skill_tree y otros campos anidados.
 
 ## Próximas decisiones pendientes
 - [ ] Modularizar a Vite+TS o mantener vanilla
 - [x] Backend para persistencia compartida → hecho Supabase
 - [x] Sistema de backup JSON → migrate-localStorage.html
-- [x] Música de fondo → hecho `0fd2ea4` D-10
+- [x] Música de fondo → hecho `0fd2ea4` D-10, botón eliminado D-10 update
+- [x] Sync status discreto → hecho D-11

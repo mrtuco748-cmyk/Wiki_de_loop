@@ -20,7 +20,35 @@ document.getElementById('btn').onclick = async ()=>{
     if(ideas.length) await supabase.from('ideas').insert(ideas.map(r=>({title:r.title,body:r.body}))), log('✓ ideas');
     if(clanes.length) await supabase.from('clanes').insert(clanes.map(r=>({name:r.name,symbol:r.symbol,description:r.desc}))), log('✓ clanes');
     if(tecnicas.length) await supabase.from('tecnicas').insert(tecnicas.map(r=>({name:r.name,owner:r.owner,description:r.desc}))), log('✓ tecnicas');
-    if(chars) for(const [id,c] of Object.entries(chars)){ await supabase.from('personajes').upsert({id,name:c.name,emoji:c.emoji,role:c.role,type:c.type||'secundario',info:c.info,name_origin:c.nameOrigin,story:c.story,powers:c.powers,images:c.images}); log('✓ personaje '+id); }
+    if(chars) for(const [id,c] of Object.entries(chars)){ await supabase.from('personajes').upsert({id,name:c.name,emoji:c.icon||'fa-person',role:c.role,type:c.type||'secundario',info:c.info,name_origin:c.nameOrigin,story:c.story,powers:c.powers,images:c.images}); log('✓ personaje '+id); }
+    // Migrar accesorios
+    let accCount=0;
+    if(chars) for(const [charId,c] of Object.entries(chars)){
+      if(c.accessories && c.accessories.length){
+        for(const a of c.accessories){
+          const accId = a.id || (crypto.randomUUID?crypto.randomUUID():'acc_'+Date.now()+'_'+Math.random().toString(36).slice(2,7));
+          await supabase.from('accesorios').upsert({id:accId,personaje_id:charId,icon:a.icon||'fa-sparkles',name:a.name||'',description:a.desc||''});
+          accCount++;
+        }
+      }
+    }
+    if(accCount) log('✓ '+accCount+' accesorios');
+    // Migrar hotspots
+    let hsCount=0;
+    if(chars) for(const [charId,c] of Object.entries(chars)){
+      if(c.viewHotspots){
+        c.viewHotspots.forEach((viewArr,viewIdx)=>{
+          if(viewArr && viewArr.length){
+            viewArr.forEach(h=>{
+              const hsId = h.id || (crypto.randomUUID?crypto.randomUUID():'hs_'+Date.now()+'_'+Math.random().toString(36).slice(2,7));
+              supabase.from('hotspots').upsert({id:hsId,personaje_id:charId,view_index:viewIdx,x:h.x,y:h.y,emoji:h.icon||'fa-sparkles',title:h.title||'',description:h.desc||''});
+              hsCount++;
+            });
+          }
+        });
+      }
+    }
+    if(hsCount) log('✓ '+hsCount+' hotspots');
     log('✅ Migración completa');
   }catch(e){ log('Error: '+e.message); }
 };

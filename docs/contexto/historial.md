@@ -1,5 +1,26 @@
 # Historial — Wiki_de_loop
 
+## [2026-09-10] - FEATURE | Icon picker FA+Emoji + Fix sync + Sync accesorios/hotspots
+**Resumen:** Icon picker visual reutilizable (Font Awesome + Unicode emojis), fix discrepancia emoji/icon en sync personajes, y sync completo de accesorios y hotspots a Supabase
+**Cambios:**
+- `index.html` CSS: Agregado `.icon-picker-overlay`, `.icon-picker`, `.icon-picker-tabs`, `.icon-picker-grid`, `.icon-picker-item`, `.icon-picker-footer` para modal de selección de iconos con estética dark-fantasy
+- `index.html` JS: Creada función `openIconPicker(currentValue, callback)` reutilizable con 2 pestañas (FA categories + Emoji grid), búsqueda, preview y selección
+- `index.html` JS: Definidas `ICON_CATEGORIES` (Personajes, Armas, Elementos, Símbolos, Naturaleza, Misc) con ~120 iconos FA curados y `EMOJI_LIST` con ~200 emojis organizados
+- `index.html` Fix sync: Línea syncCharactersToCloud mapeo `emoji:c.icon` (antes `c.emoji` undefined), línea merge init mapeo `icon:r.emoji`, línea polling mapeo `icon:r.emoji`
+- `index.html` Fix `_char-emoji` → `_char-icon` (referencia obsoleta eliminada)
+- `index.html` Personajes: Input texto reemplazado por botón que abre icon picker, campo oculto `_char-icon` para valor
+- `index.html` Accesorios: Icono clickeable en `renderAccessories` abre picker, actualiza `a.icon` y re-renderiza
+- `index.html` Hotspots: Input texto reemplazado por botón que abre picker en `editHotspot`
+- `index.html` JS: Creadas `syncAccessoriesToCloud()` y `syncHotspotsToCloud()` con upsert + cleanup por ID
+- `index.html` `_saveToStorage()` modificado: debounce 800ms llama syncAccessoriesToCloud + syncHotspotsToCloud
+- `index.html` Init: Pull de accesorios y hotspots desde Supabase al cargar, merge a charData
+- `index.html` Polling: Pull de accesorios y hotspots en `pollOnce()` cada 3s
+- `index.html` `removeAccessory()` y `deleteHotspot()` ahora llaman `_saveToStorage()` para sync
+- `supabase/migrate-localStorage.html` Agregada migración de accesorios y hotspots desde localStorage
+**Lecciones:** La discrepancia `emoji` (DB) vs `icon` (JS) causaba sync de `undefined`; icon picker reutilizable con callback reduce duplicación; sync de sub-entidades requiere cleanup por ID para evitar clones; debounce en `_saveToStorage` evita spam de requests a Supabase.
+**Impacto:** Selección visual de iconos sin conocer clases FA; personajes, accesorios y hotspots se syncronizan correctamente a Supabase; datos persisten cross-device.
+**Relacionado:** decisiones.md D-2, D-8, D-9; arquitectura.md; errores-conocidos.md
+
 ## [2026-09-10 19:00] - FEATURE | Hash-routing para links únicos por pantalla
 **Resumen:** Cada sección y personaje ahora genera un link distinto con hash-routing (#historia, #personaje/tradden, etc.)
 **Cambios:**
