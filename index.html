@@ -724,6 +724,7 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
 <div class="cursor-glow" id="cursor"></div>
 
 <div id="app">
+<div id="sync-status" style="position:fixed;top:8px;right:8px;z-index:9999;background:var(--dark3);border:1px solid var(--border);color:var(--gold);font-family:'Cinzel',serif;font-size:0.65rem;padding:4px 8px;border-radius:4px;opacity:0.9">● Sync...</div>
 
 <!-- ===== HOME ===== -->
 <div id="home-screen">
@@ -2316,6 +2317,15 @@ function attachAutoSave(){
   });
 }
 attachAutoSave();
+function setSyncStatus(t,ok=true){ const el=document.getElementById('sync-status'); if(!el) return; el.textContent=(ok?'● ':'✕ ')+t; el.style.borderColor=ok?'var(--gold)':'var(--red2)'; el.style.color=ok?'var(--gold)':'#e88'; }
+async function testSync(){ try{ await sbFetch('tramas','GET'); setSyncStatus('Sync OK '+new Date().toLocaleTimeString()); }catch(e){ setSyncStatus('Sync FAIL: '+e.message.slice(0,40),false); } }
+// expose manual sync
+window.forceSyncAll = async()=>{
+  setSyncStatus('Sincronizando...');
+  for(const [k,t] of Object.entries(MAP)){ const d=sLoad(k,[]); if(d.length) await sbFetch(t,'DELETE').catch(()=>{}); if(d.length){ const payload=d.map(r=> t==='historia_eventos'?{title:r.title,body:r.body,era:r.era}: t==='clanes'?{name:r.name,symbol:r.symbol,description:r.desc}: t==='tecnicas'?{name:r.name,owner:r.owner,description:r.desc}:{title:r.title,body:r.body}); if(payload.length) await sbFetch(t,'POST',payload).catch(e=>setSyncStatus(e.message,false)); } }
+  await testSync();
+};
+setTimeout(testSync,1500);
 console.log('[sync] offline-first Supabase vinculado + auto-save contenteditable');
 </script>
 
