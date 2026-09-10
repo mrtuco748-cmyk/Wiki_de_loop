@@ -725,11 +725,7 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
 <div class="cursor-glow" id="cursor"></div>
 
 <div id="app">
-<div id="sync-status" style="position:fixed;top:8px;right:8px;z-index:9999;background:var(--dark3);border:1px solid var(--border);color:var(--gold);font-family:'Cinzel',serif;font-size:0.65rem;padding:4px 8px;border-radius:4px;opacity:0.9;max-width:70vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">● Sync...</div>
-<div style="position:fixed;bottom:8px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;gap:6px">
-  <button onclick="forceSyncAll()" style="background:var(--dark3);border:1px solid var(--gold);color:var(--gold);font-family:'Cinzel',serif;font-size:0.6rem;padding:6px 10px;border-radius:4px;cursor:pointer">↻ Sincronizar</button>
-  <button onclick="clearLocalAndReload()" style="background:var(--dark3);border:1px solid var(--red2);color:#e88;font-family:'Cinzel',serif;font-size:0.6rem;padding:6px 10px;border-radius:4px;cursor:pointer">↺ Recargar desde nube</button>
-</div>
+<div id="sync-status" style="position:fixed;top:8px;right:8px;z-index:9999;background:var(--dark3);border:1px solid var(--border);color:var(--gold);font-family:'Cinzel',serif;font-size:0.62rem;padding:4px 8px;border-radius:4px;opacity:0.75;pointer-events:none;max-width:60vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">● Sync...</div>
 
 <!-- ===== HOME ===== -->
 <div id="home-screen">
@@ -2371,50 +2367,38 @@ function attachAutoSave(){
   });
 }
 attachAutoSave();
-// Polling realtime: cada 4s trae de Supabase y re-renderiza si cambió (para ver cambios del otro dispositivo sin recargar)
+// Polling realtime: cada 3s trae de Supabase y re-renderiza si cambió (auto, sin pisar edición)
 let _polling=false;
 async function pollOnce(){
   if(_polling) return;
-  if(document.querySelector('[contenteditable]:focus')) return; // no pisar mientras edita
+  if(document.querySelector('[contenteditable]:focus')) return;
+  // no pisar si hay guardado pendiente
+  if(Object.keys(_saveTimers).some(k=>_saveTimers[MAP[k]])) return;
   _polling=true;
   try{
     for(const [lsKey, table] of Object.entries(MAP)){
+      if(_saveTimers[table]) continue;
       try{
         const cloud = await sbFetch(table,'GET');
         const local = sLoad(lsKey, []);
-        const cloudStr = JSON.stringify(ensureIds(cloud.map(mappers[table])).sort((a,b)=>(a.id||'').localeCompare(b.id||'')));
-        const localStr = JSON.stringify(ensureIds(local).sort((a,b)=>(a.id||'').localeCompare(b.id||'')));
-        if(cloudStr !== localStr){
+        const cloudNorm = ensureIds(cloud.map(mappers[table])).sort((a,b)=>(a.id||'').localeCompare(b.id||''));
+        const localNorm = ensureIds(local).sort((a,b)=>(a.id||'').localeCompare(b.id||''));
+        if(JSON.stringify(cloudNorm) !== JSON.stringify(localNorm)){
           localStorage.setItem(lsKey, JSON.stringify(cloud.map(mappers[table])));
-          // re-render solo la sección correspondiente
           if(table==='historia_eventos') renderHistoria(sLoad(lsKey, DEFAULT_HISTORIA));
           else if(table==='tramas') renderCards('tramas-grid', sLoad(lsKey, DEFAULT_TRAMAS));
           else if(table==='ideas') renderCards('ideas-grid', sLoad(lsKey, DEFAULT_IDEAS));
           else if(table==='clanes') renderClanes(sLoad(lsKey, DEFAULT_CLANES));
           else if(table==='tecnicas') renderTecnicas(sLoad(lsKey, DEFAULT_TECNICAS));
-          console.log('[poll] actualizado',table);
         }
-      }catch(e){ /* ignora, testSync mostrará error */ }
+      }catch{}
     }
-    testSync();
   }finally{_polling=false;}
 }
-setInterval(pollOnce, 4000);
+setInterval(pollOnce, 3000);
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) pollOnce(); });
-function setSyncStatus(t,ok=true){ const el=document.getElementById('sync-status'); if(!el) return; el.textContent=(ok?'● ':'✕ ')+t; el.style.borderColor=ok?'var(--gold)':'var(--red2)'; el.style.color=ok?'var(--gold)':'#e88'; console.log('[sync-status]',t); }
-async function testSync(){ try{ const d=await sbFetch('tramas','GET'); setSyncStatus('● Sync OK ('+d.length+' tramas) '+new Date().toLocaleTimeString().slice(0,5)); }catch(e){ const isBlocked=e.message.includes('Failed to fetch')||e.message.includes('NetworkError'); const msg=isBlocked?'Opera GX bloquea supabase.co → desactiva escudo/adblock en opera://settings':e.message.slice(0,70); setSyncStatus('✕ Sync FAIL: '+msg,false); console.error('[sync] testSync',e); } }
-window.clearLocalAndReload = async()=>{
-  if(!confirm('¿Borrar cache local y recargar todo desde Supabase?')) return;
-  Object.keys(MAP).forEach(k=>localStorage.removeItem(k));
-  localStorage.removeItem('loop_characters');
-  location.reload();
-};
-// expose manual sync
-window.forceSyncAll = async()=>{
-  setSyncStatus('Sincronizando...');
-  for(const [k,t] of Object.entries(MAP)){ const d=sLoad(k,[]); if(d.length) await sbFetch(t,'DELETE').catch(()=>{}); if(d.length){ const payload=d.map(r=> t==='historia_eventos'?{title:r.title,body:r.body,era:r.era}: t==='clanes'?{name:r.name,symbol:r.symbol,description:r.desc}: t==='tecnicas'?{name:r.name,owner:r.owner,description:r.desc}:{title:r.title,body:r.body}); if(payload.length) await sbFetch(t,'POST',payload).catch(e=>setSyncStatus(e.message,false)); } }
-  await testSync();
-};
+function setSyncStatus(t,ok=true){ const el=document.getElementById('sync-status'); if(!el) return; el.textContent=(ok?'● ':'✕ ')+t; el.style.borderColor=ok?'var(--gold)':'var(--red2)'; el.style.color=ok?'var(--gold)':'#e88'; }
+async function testSync(){ try{ const d=await sbFetch('tramas','GET'); setSyncStatus('● '+d.length+' tramas'); }catch(e){ const isBlocked=e.message.includes('Failed to fetch'); const msg=isBlocked?'Offline':e.message.slice(0,40); setSyncStatus('✕ '+msg,false); } }
 setTimeout(testSync,1500);
 console.log('[sync] offline-first Supabase vinculado + auto-save contenteditable');
 </script>
