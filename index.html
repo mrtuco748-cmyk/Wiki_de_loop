@@ -2203,31 +2203,20 @@ function setupCanvasEvents() {
 setupCanvasEvents();
 </script>
 
-<script type="module">
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-const supabase = createClient('https://ekabsuqctklmbnpefowc.supabase.co','sb_publishable_Ku3yWdzyLQJy1G8gGHJK4A_VE_gCGtQ');
+<script>
+const SUPA_URL='https://ekabsuqctklmbnpefowc.supabase.co';
+const SUPA_KEY='sb_publishable_Ku3yWdzyLQJy1G8gGHJK4A_VE_gCGtQ';
 const MAP = { loop_historia:'historia_eventos', loop_tramas:'tramas', loop_ideas:'ideas', loop_clanes:'clanes', loop_tecnicas:'tecnicas' };
-const QUEUE_KEY='loop_sync_queue';
-const qLoad=()=>{try{return JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]')}catch{return[]}};
-const qSave=q=>localStorage.setItem(QUEUE_KEY,JSON.stringify(q));
-function queue(table,payload){const q=qLoad();q.push({table,payload,ts:Date.now()});qSave(q);}
-async function flushQueue(){
-  if(!navigator.onLine) return;
-  const q=qLoad(); if(!q.length) return;
-  for(const item of q){
-    try{ await supabase.from(item.table).upsert(item.payload); }catch{}
-  }
-  localStorage.removeItem(QUEUE_KEY);
-}
-async function syncTable(lsKey, table, mapper){
-  try{
-    const {data,error} = await supabase.from(table).select('*');
-    if(error||!data) return;
-    if(data.length){
-      const mapped = data.map(mapper).filter(Boolean);
-      if(mapped.length) { localStorage.setItem(lsKey, JSON.stringify(mapped)); }
-    }
-  }catch{}
+async function sbFetch(table, method='GET', body){
+  const headers={ apikey: SUPA_KEY, Authorization:'Bearer '+SUPA_KEY, 'Content-Type':'application/json', Prefer:'return=representation' };
+  const url=SUPA_URL+'/rest/v1/'+table;
+  const opts={method, headers};
+  if(body) opts.body=JSON.stringify(body);
+  const r=await fetch(url, opts);
+  const txt=await r.text();
+  let data; try{data=JSON.parse(txt)}catch{data=txt}
+  if(!r.ok) throw new Error(table+' '+r.status+' '+txt.slice(0,300));
+  return data;
 }
 // Mappers Supabase -> localStorage format
 const mappers={
@@ -2255,40 +2244,38 @@ window.sSave = function(key,val){
       if(table==='tecnicas') return {name:r.name, owner:r.owner, description:r.desc};
       return {title:r.title, body:r.body};
     });
-    const {error: delErr} = await supabase.from(table).delete().neq('id','00000000-0000-0000-0000-000000000000');
-    if(delErr){ console.error('[sync] delete error',delErr); queue(table,payload); return; }
-    if(payload.length){
-      const {error: insErr} = await supabase.from(table).insert(payload);
-      if(insErr){ console.error('[sync] insert error',insErr); queue(table,payload); }
-      else console.log('[sync] synced',table, payload.length);
-    }
+    try{
+      await sbFetch(table,'DELETE');
+      // Supabase REST delete without filter deletes nothing, use ?id=neq.000... via direct fetch
+      await fetch(SUPA_URL+'/rest/v1/'+table+'?id=neq.00000000-0000-0000-0000-000000000000',{method:'DELETE', headers:{apikey:SUPA_KEY, Authorization:'Bearer '+SUPA_KEY}});
+      if(payload.length) await sbFetch(table,'POST',payload);
+      console.log('[sync] synced',table,payload.length);
+    }catch(e){ console.error('[sync] error',e.message); }
   })();
 };
-// Personajes sync simple (charData)
+// Personajes sync
 window.syncCharactersToCloud = async function(){
   if(!navigator.onLine) return;
-  try{ for(const [id,c] of Object.entries(window.charData||{})){
-    await supabase.from('personajes').upsert({id, name:c.name, emoji:c.emoji, role:c.role, type:c.type||'secundario', info:c.info, name_origin:c.nameOrigin, story:c.story, powers:c.powers, images:c.images||[null,null,null]});
-  }}catch{}
+  for(const [id,c] of Object.entries(window.charData||{})){
+    try{ await sbFetch('personajes','POST',[{id, name:c.name, emoji:c.emoji, role:c.role, type:c.type||'secundario', info:c.info, name_origin:c.nameOrigin, story:c.story, powers:c.powers, images:c.images||[null,null,null]}]); }catch(e){ console.error(e.message); }
+  }
 };
 // Load from cloud on start if online - AUTO PUSH si nube vacía
 if(navigator.onLine){
   (async()=>{
     for(const [lsKey, table] of Object.entries(MAP)){
       try{
-        const {data} = await supabase.from(table).select('*');
+        const data = await sbFetch(table,'GET');
         const local = sLoad(lsKey, null);
-        const hasLocal = local && Array.isArray(local) && local.length > 0 && JSON.stringify(local) !== JSON.stringify({historia_eventos:DEFAULT_HISTORIA,tramas:DEFAULT_TRAMAS,ideas:DEFAULT_IDEAS,clanes:DEFAULT_CLANES,tecnicas:DEFAULT_TECNICAS}[table]);
+        const hasLocal = local && Array.isArray(local) && local.length>0;
         if(!data || data.length===0){
-          // nube vacía -> subir lo local (o defaults si es primera vez)
-          if(hasLocal){ console.log('[sync] nube vacía, subiendo',lsKey); sSave(lsKey, local); }
+          if(hasLocal){ console.log('[sync] nube vacía, subiendo',lsKey); sSave(lsKey, local); await new Promise(r=>setTimeout(r,600)); }
           continue;
         }
-        // nube con datos -> bajar a local
         const mapper=mappers[table];
         const mapped=data.map(mapper).filter(Boolean);
         if(mapped.length) localStorage.setItem(lsKey, JSON.stringify(mapped));
-      }catch(e){ console.error('[sync] init',table,e); }
+      }catch(e){ console.error('[sync] init',table,e.message); }
     }
     try{
       if(window.renderHistoria) renderHistoria(sLoad('loop_historia', DEFAULT_HISTORIA));
@@ -2297,14 +2284,10 @@ if(navigator.onLine){
       if(window.renderTecnicas) renderTecnicas(sLoad('loop_tecnicas', DEFAULT_TECNICAS));
     }catch{}
     flushQueue();
-    // también subir personajes locales si nube vacía
-    try{
-      const {data: chars} = await supabase.from('personajes').select('id');
-      if(!chars || chars.length===0) window.syncCharactersToCloud();
-    }catch{}
+    try{ const chars=await sbFetch('personajes','GET'); if(!chars||chars.length===0) await window.syncCharactersToCloud(); }catch{}
   })();
 }
-window.addEventListener('online', flushQueue);
+window.addEventListener('online', ()=>location.reload());
 // Hook guardar personajes
 const _saveChars = window._saveToStorage||window.saveCharactersToLocal;
 if(_saveChars) { const orig=_saveChars; const wrapped=()=>{orig(); window.syncCharactersToCloud();}; window._saveToStorage=wrapped; window.saveCharactersToLocal=wrapped; }
