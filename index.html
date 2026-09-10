@@ -2209,7 +2209,20 @@ const MAP = { loop_historia:'historia_eventos', loop_tramas:'tramas', loop_ideas
 const DIRECT_URL='https://hkvwczecoeqmgrqpyxme.supabase.co';
 const DIRECT_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrdndjemVjb2VxbWdycXB5eG1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwMzU4NDAsImV4cCI6MjEwNDYxMTg0MH0.9_HheUQwM1_SSj56BT4DGSg7jv0ZFBllv5MbK89so6Q';
 async function sbFetch(table, method='GET', body){
-  // Intenta proxy Vercel primero, fallback directo si falla (Opera GX bloquea supabase.co a veces)
+  // FIX Investigación: Vercel Functions no soporta IPv6 -> proxy falla con ENOTFOUND
+  // Opera GX bloquea supabase.co via adblock -> direct puede fallar
+  // Estrategia: direct-first (browser -> Supabase REST, gateway Kong pone CORS), proxy fallback
+  const tryDirect = async()=>{
+    const headers={ apikey: DIRECT_KEY, Authorization:'Bearer '+DIRECT_KEY, 'Content-Type':'application/json', Prefer:'return=representation' };
+    const url=DIRECT_URL+'/rest/v1/'+table + (method==='DELETE' ? '?id=neq.00000000-0000-0000-000000000000' : '');
+    const opts={method, headers};
+    if(body && method!=='DELETE') opts.body=JSON.stringify(body);
+    const r=await fetch(url, opts);
+    const txt=await r.text();
+    let data; try{data=JSON.parse(txt)}catch{data=txt}
+    if(!r.ok) throw new Error('direct '+r.status+' '+txt.slice(0,400));
+    return data;
+  };
   const tryProxy = async()=>{
     const url='/api/sync?table='+table;
     const opts={method, headers:{'Content-Type':'application/json'}};
@@ -2220,18 +2233,7 @@ async function sbFetch(table, method='GET', body){
     if(!r.ok) throw new Error('proxy '+r.status+' '+txt.slice(0,400));
     return data;
   };
-  const tryDirect = async()=>{
-    const headers={ apikey: DIRECT_KEY, Authorization:'Bearer '+DIRECT_KEY, 'Content-Type':'application/json', Prefer:'return=representation' };
-    const url=DIRECT_URL+'/rest/v1/'+table + (method==='DELETE' ? '?id=neq.00000000-0000-0000-0000-000000000000' : '');
-    const opts={method, headers};
-    if(body && method!=='DELETE') opts.body=JSON.stringify(body);
-    const r=await fetch(url, opts);
-    const txt=await r.text();
-    let data; try{data=JSON.parse(txt)}catch{data=txt}
-    if(!r.ok) throw new Error('direct '+r.status+' '+txt.slice(0,400));
-    return data;
-  };
-  try{ return await tryProxy(); }catch(e){ console.warn('[sync] proxy fail, fallback direct', e.message); return await tryDirect(); }
+  try{ return await tryDirect(); }catch(e){ console.warn('[sync] direct fail (Opera adblock/CORS hypothesis), fallback proxy', e.message); setSyncStatus('Direct bloqueado, probando proxy...',false); return await tryProxy(); }
 }
 // Mappers Supabase -> localStorage format
 const mappers={
@@ -2241,14 +2243,17 @@ const mappers={
   clanes:r=>({symbol:r.symbol||'✦',name:r.name||'',desc:r.description||''}),
   tecnicas:r=>({name:r.name||'',owner:r.owner||'',desc:r.description||''}),
 };
-// Override sSave to sync
+// Override sSave to sync - debounced + indicador visible
 const _origSave = window.sSave;
+let _saveTimers={};
 window.sSave = function(key,val){
   _origSave(key,val);
   const table=MAP[key];
-  if(!table||!navigator.onLine) return;
-  // fire-and-forget: delete all + insert (simple for prototipo minimal)
-  (async()=>{
+  if(!table) return;
+  if(!navigator.onLine){ setSyncStatus('Offline: guardado local',false); return; }
+  clearTimeout(_saveTimers[table]);
+  _saveTimers[table]=setTimeout(async()=>{
+    setSyncStatus('Guardando '+table+'...');
     const rows = Array.isArray(val)?val:[val];
     const payload = rows.map(r=>{
       if(table==='historia_eventos') return {title:r.title, body:r.body, era:r.era};
@@ -2260,8 +2265,9 @@ window.sSave = function(key,val){
       await sbFetch(table,'DELETE');
       if(payload.length) await sbFetch(table,'POST',payload);
       console.log('[sync] synced',table,payload.length);
-    }catch(e){ console.error('[sync] error',e.message); }
-  })();
+      setSyncStatus('● Guardado '+table+' '+new Date().toLocaleTimeString());
+    }catch(e){ console.error('[sync] error',e.message); setSyncStatus('✕ Error '+table+': '+e.message.slice(0,50),false); }
+  },400);
 };
 // Personajes sync
 window.syncCharactersToCloud = async function(){
@@ -2317,8 +2323,8 @@ function attachAutoSave(){
   });
 }
 attachAutoSave();
-function setSyncStatus(t,ok=true){ const el=document.getElementById('sync-status'); if(!el) return; el.textContent=(ok?'● ':'✕ ')+t; el.style.borderColor=ok?'var(--gold)':'var(--red2)'; el.style.color=ok?'var(--gold)':'#e88'; }
-async function testSync(){ try{ await sbFetch('tramas','GET'); setSyncStatus('Sync OK '+new Date().toLocaleTimeString()); }catch(e){ setSyncStatus('Sync FAIL: '+e.message.slice(0,40),false); } }
+function setSyncStatus(t,ok=true){ const el=document.getElementById('sync-status'); if(!el) return; el.textContent=(ok?'● ':'✕ ')+t; el.style.borderColor=ok?'var(--gold)':'var(--red2)'; el.style.color=ok?'var(--gold)':'#e88'; console.log('[sync-status]',t); }
+async function testSync(){ try{ await sbFetch('tramas','GET'); setSyncStatus('● Sync OK '+new Date().toLocaleTimeString()); }catch(e){ const msg=e.message.includes('Failed to fetch')?'Bloqueado por Opera GX adblock - desactiva escudo':e.message.slice(0,60); setSyncStatus('✕ Sync FAIL: '+msg,false); console.error('[sync] testSync',e); } }
 // expose manual sync
 window.forceSyncAll = async()=>{
   setSyncStatus('Sincronizando...');
