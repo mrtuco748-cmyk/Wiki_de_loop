@@ -2205,16 +2205,32 @@ setupCanvasEvents();
 
 <script>
 const MAP = { loop_historia:'historia_eventos', loop_tramas:'tramas', loop_ideas:'ideas', loop_clanes:'clanes', loop_tecnicas:'tecnicas' };
+const DIRECT_URL='https://ekabsuqctklmbnpefowc.supabase.co';
+const DIRECT_KEY='sb_publishable_Ku3yWdzyLQJy1G8gGHJK4A_VE_gCGtQ';
 async function sbFetch(table, method='GET', body){
-  // Usa proxy Vercel /api/sync?table= para usar env vars de la integración Vercel-Supabase (evita CORS/bloqueos Opera)
-  const url='/api/sync?table='+table;
-  const opts={method, headers:{'Content-Type':'application/json'}};
-  if(body) opts.body=JSON.stringify(body);
-  const r=await fetch(url, opts);
-  const txt=await r.text();
-  let data; try{data=JSON.parse(txt)}catch{data=txt}
-  if(!r.ok) throw new Error(table+' '+r.status+' '+txt.slice(0,300));
-  return data;
+  // Intenta proxy Vercel primero, fallback directo si falla (Opera GX bloquea supabase.co a veces)
+  const tryProxy = async()=>{
+    const url='/api/sync?table='+table;
+    const opts={method, headers:{'Content-Type':'application/json'}};
+    if(body) opts.body=JSON.stringify(body);
+    const r=await fetch(url, opts);
+    const txt=await r.text();
+    let data; try{data=JSON.parse(txt)}catch{data=txt}
+    if(!r.ok) throw new Error('proxy '+r.status+' '+txt.slice(0,400));
+    return data;
+  };
+  const tryDirect = async()=>{
+    const headers={ apikey: DIRECT_KEY, Authorization:'Bearer '+DIRECT_KEY, 'Content-Type':'application/json', Prefer:'return=representation' };
+    const url=DIRECT_URL+'/rest/v1/'+table + (method==='DELETE' ? '?id=neq.00000000-0000-0000-0000-000000000000' : '');
+    const opts={method, headers};
+    if(body && method!=='DELETE') opts.body=JSON.stringify(body);
+    const r=await fetch(url, opts);
+    const txt=await r.text();
+    let data; try{data=JSON.parse(txt)}catch{data=txt}
+    if(!r.ok) throw new Error('direct '+r.status+' '+txt.slice(0,400));
+    return data;
+  };
+  try{ return await tryProxy(); }catch(e){ console.warn('[sync] proxy fail, fallback direct', e.message); return await tryDirect(); }
 }
 // Mappers Supabase -> localStorage format
 const mappers={

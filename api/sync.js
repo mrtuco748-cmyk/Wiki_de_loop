@@ -14,7 +14,9 @@ export default async function handler(req, res) {
     if(req.method==='GET'){ r=await fetch(url,{headers}); }
     else if(req.method==='POST'){ r=await fetch(url,{method:'POST',headers,body:JSON.stringify(req.body)}); }
     else if(req.method==='DELETE'){ r=await fetch(url+'?id=neq.00000000-0000-0000-0000-000000000000',{method:'DELETE',headers}); }
+    else return res.status(405).json({error:'method not allowed'});
     const text=await r.text();
+    if(!r.ok) return res.status(r.status).json({error:text, url, keyPrefix: KEY.slice(0,10)});
     res.status(r.status).send(text);
-  }catch(e){ res.status(500).json({error:e.message}); }
+  }catch(e){ res.status(500).json({error:'fetch failed: '+e.message, cause: String(e.cause||''), url, keyPrefix: KEY.slice(0,10)}); }
 }
