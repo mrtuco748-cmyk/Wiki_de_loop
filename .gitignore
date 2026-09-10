@@ -2,3 +2,6 @@
 APIS.txt
 .env
 .env.local
+
+api vercel.txt
+.env.local
