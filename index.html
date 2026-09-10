@@ -2372,23 +2372,24 @@ if(navigator.onLine){
       if(!chars || chars.length===0){
         if(Object.keys(window.charData||{}).length) await window.syncCharactersToCloud();
       } else {
-        // merge nube -> local
+        // merge nube -> local (solo campos definidos, no pisa hardcodeo con null)
         let changed=false;
         const cloudIds=new Set(chars.map(c=>c.id));
         chars.forEach(r=>{
-          const mapped={name:r.name, emoji:r.emoji, role:r.role, type:r.type||'secundario', info:r.info, nameOrigin:r.name_origin, story:r.story, powers:r.powers, images:r.images||[null,null,null]};
+          const mapped={name:r.name, emoji:r.emoji, role:r.role, type:r.type, info:r.info, nameOrigin:r.name_origin, story:r.story, powers:r.powers, images:r.images};
+          // limpia undefined/null para no pisar
+          Object.keys(mapped).forEach(k=>{ if(mapped[k]===null||mapped[k]===undefined) delete mapped[k]; });
+          if(!mapped.type) mapped.type='secundario';
+          if(!mapped.images) mapped.images=[null,null,null];
           if(!charData[r.id]){
             charData[r.id]={...mapped, accessories:[], viewHotspots:[[],[],[]], skillTree:{roots:[]}, views:['Frontal','Lateral','Posterior'], hotspots:[]};
             _addCardToGrid(r.id);
             changed=true;
           } else {
-            // actualiza solo si cambió
             const cur=charData[r.id];
-            if(cur.name!==mapped.name||cur.info!==mapped.info||cur.story!==mapped.story||cur.powers!==mapped.powers||JSON.stringify(cur.images)!==JSON.stringify(mapped.images)){
-              Object.assign(cur, mapped);
-              _syncCard(r.id);
-              changed=true;
-            }
+            let diff=false;
+            for(const k in mapped){ if(cur[k]!==mapped[k] && JSON.stringify(cur[k])!==JSON.stringify(mapped[k])){ cur[k]=mapped[k]; diff=true; } }
+            if(diff){ _syncCard(r.id); if(currentChar===r.id){ const n=document.getElementById('cd-name'); if(n) n.textContent=cur.name; const ro=document.getElementById('cd-role'); if(ro) ro.textContent=cur.role; } changed=true; }
           }
         });
         // si hay personajes locales nuevos con id char_* que no están en nube, ya se pushearán en próximo syncCharactersToCloud, no borrar
@@ -2465,18 +2466,19 @@ async function pollOnce(){
       const cloudIds = new Set(cloudChars.map(c=>c.id));
       let changed=false;
       for(const r of cloudChars){
+        const mapped={name:r.name, emoji:r.emoji, role:r.role, type:r.type, info:r.info, nameOrigin:r.name_origin, story:r.story, powers:r.powers, images:r.images};
+        Object.keys(mapped).forEach(k=>{ if(mapped[k]===null||mapped[k]===undefined) delete mapped[k]; });
+        if(!mapped.type) mapped.type='secundario';
+        if(!mapped.images) mapped.images=[null,null,null];
         if(!charData[r.id]){
-          charData[r.id]={name:r.name, emoji:r.emoji, role:r.role, type:r.type||'secundario', info:r.info, nameOrigin:r.name_origin, story:r.story, powers:r.powers, images:r.images||[null,null,null], accessories:[], viewHotspots:[[],[],[]], skillTree:{roots:[]}, views:['Frontal','Lateral','Posterior'], hotspots:[]};
+          charData[r.id]={...mapped, accessories:[], viewHotspots:[[],[],[]], skillTree:{roots:[]}, views:['Frontal','Lateral','Posterior'], hotspots:[]};
           _addCardToGrid(r.id);
           changed=true;
         } else {
           const cur=charData[r.id];
-          if(cur.name!==r.name||cur.role!==r.role||cur.emoji!==r.emoji||cur.info!==r.info){
-            Object.assign(cur, {name:r.name, emoji:r.emoji, role:r.role, type:r.type||'secundario', info:r.info, nameOrigin:r.name_origin, story:r.story, powers:r.powers, images:r.images||[null,null,null]});
-            _syncCard(r.id);
-            if(currentChar===r.id){ document.getElementById('cd-name').textContent=r.name; document.getElementById('cd-role').textContent=r.role; document.getElementById('cd-info').textContent=r.info||''; }
-            changed=true;
-          }
+          let diff=false;
+          for(const k in mapped){ if(JSON.stringify(cur[k])!==JSON.stringify(mapped[k])){ cur[k]=mapped[k]; diff=true; } }
+          if(diff){ _syncCard(r.id); if(currentChar===r.id){ const n=document.getElementById('cd-name'); if(n) n.textContent=cur.name; const ro=document.getElementById('cd-role'); if(ro) ro.textContent=cur.role; const inf=document.getElementById('cd-info'); if(inf) inf.textContent=cur.info||''; } changed=true; }
         }
       }
       for(const id of [...localIds]){ if(!cloudIds.has(id) && !id.startsWith('tradden') && !id.startsWith('sincer') && !id.startsWith('tunami') && !id.startsWith('eleya') && !id.startsWith('polos') && !id.startsWith('haski')){ /* si fue borrado en nube, borrar local */ if(charData[id] && cloudChars.length>0){ delete charData[id]; const card=document.querySelector(`[data-char-id="${id}"]`); if(card) card.remove(); changed=true; } } }
