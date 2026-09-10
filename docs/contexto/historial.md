@@ -1,5 +1,17 @@
 # Historial — Wiki_de_loop
 
+## [2026-09-10 15:00] - FEATURE | Música de fondo bucle 40% fade + compresión
+**Resumen:** Música ambiental medieval en bucle al 40% con fade in/out e inicio aleatorio. Compresión 82MB→14-23MB.
+**Cambios:**
+- `index.html:754` `<audio id="bg-music" loop preload="auto">` con `<source src="bg-music.opus" type="audio/ogg; codecs=opus">` + fallback `bg-music.mp3`
+- `index.html:735` CSS `#music-toggle` flotante bottom-right con estados `playing`/`paused` y `musicPulse`, `index.html:762` botón `<button id="music-toggle">`
+- `index.html:2532` script `TARGET_VOL=0.4` `index.html:2540`, `FADE_IN_MS=3500` `FADE_OUT_MS=800` `index.html:2541`, `fadeTo()` `index.html:2553` con `requestAnimationFrame` + `easeOutCubic`, `fadeIn()`/`fadeOutAndPause()`, `playWithRandomStart()` `index.html:2595` con `Math.random()*(d-margin*2)+margin` `index.html:2568` solo primera vez (`hasStarted` flag), `resumeWithoutRandom()` `index.html:2634` sin salto, listeners `loadedmetadata`+`setTimeout 300/1500ms` y `gestureEvents click/touchstart/keydown` para autoplay bloqueado, `cancelFade` y `volume=0→0.4` gradual
+- `bg-music.mp3` 23.89MB `ffmpeg -b:a 48k -ac 1 -ar 44100 libmp3lame` (71% ahorro), `bg-music.opus` 14.61MB `ffmpeg -b:a 24k -ac 1 libopus` (82% ahorro), original `YTDown...128k.mp3` 82.07MB 4175s 164kbps eliminado (no trackeado, `git ls-files` vacío)
+- Commit `0fd2ea4` `feat: musica de fondo...` pusheado a `origin/main` `https://github.com/mrtuco748-cmyk/Wiki_de_loop.git` verificado `git fetch` `HEAD==origin/main`
+**Lecciones:** Autoplay requiere gesto usuario (`play().catch` → `needsGesture`), `audio.loop=true` nativo vs `ended` random, `currentTime` set antes de `play()` con `duration` check, `requestAnimationFrame` fade evita `setInterval` drift, Opus 24k mono ~10kbps/seg calidad suficiente para ambiente bosque, `volume` 0.4 via `TARGET_VOL` constante.
+**Impacto:** Inmersión sonora sin intrusión (40% + 3.5s fade), inicio no repetitivo, peso repo -43.5MB (53% total) o -58/67MB individual, botón accesible móvil/desktop.
+**Relacionado:** decisiones.md D-10, arquitectura.md Stack/Flujo, glosario.md bg-music
+
 ## [2026-09-10 13:20] - FIX | Personajes window.charData → charData (final)
 **Resumen:** Fix definitivo crear personaje no guardaba — otras secciones usaban localStorage y sí
 **Cambios:**

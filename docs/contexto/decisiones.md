@@ -63,7 +63,16 @@
 - **Impacto:** Personajes CRUD en vivo sin botones, `64d831a` verificado `GET personajes 6` y `window.charData` fix, usuario confirma "al fin funciona".
 - **Revisable:** No.
 
+### D-10: Música de fondo bucle 40% fade + compresión
+- **Fecha:** 2026-09-10 15:00 `0fd2ea4`
+- **Qué:** `index.html:754` `<audio id="bg-music" loop>` con `bg-music.opus` 14.61MB 24k mono (opus) + `bg-music.mp3` 23.89MB 48k mono (mp3) comprimidos vía `ffmpeg libopus/libmp3lame` desde 82.07MB 128k original; `index.html:735` CSS `#music-toggle` + `index.html:2532` JS `TARGET_VOL=0.4` `FADE_IN_MS=3500` `FADE_OUT_MS=800` `fadeTo()` `requestAnimationFrame` `easeOutCubic`, inicio aleatorio `Math.random()*(d-margin*2)+margin` solo primera vez, `loadedmetadata`+`gestureEvents` fallback para autoplay bloqueado, `fadeOutAndPause` en toggle.
+- **Por qué:** Inmersión medieval sin molestar (40% + fade 3.5s), no repetir siempre mismo inicio, peso repo -53% total, compatibilidad opus+mp3 (Safari fallback mp3, Chrome/Firefox opus).
+- **Alternativas:** `howler.js` (overkill), `Web Audio API` (más control pero más código), single file 128k (82MB pesado), `autoplay muted` sin gesto (mala UX).
+- **Impacto:** Audio persistente en todas las secciones, botón flotante accesible, sin librerías externas, reproducción fiable cross-browser.
+- **Revisable:** Sí. Duración fade parametrizable, volumen user preference en localStorage, posible `Web Audio` para crossfade entre pistas.
+
 ## Próximas decisiones pendientes
 - [ ] Modularizar a Vite+TS o mantener vanilla
 - [x] Backend para persistencia compartida → hecho Supabase
 - [x] Sistema de backup JSON → migrate-localStorage.html
+- [x] Música de fondo → hecho `0fd2ea4` D-10

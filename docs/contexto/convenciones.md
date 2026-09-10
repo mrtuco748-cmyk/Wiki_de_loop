@@ -19,6 +19,7 @@ N/A (sin módulos). Futuro con Vite: 1) terceros 2) locales 3) estilos.
 - Render imperativo (`innerHTML`) + contenteditable para edición inline
 - Canvas 2D para árbol habilidades
 - Hotspots posicionados en % sobre `.char-image-area`
+- Audio `<audio loop>` `index.html:754` + JS fade `requestAnimationFrame` `index.html:2553` + random `currentTime` `index.html:2568` + botón `#music-toggle` `index.html:735`
 
 ## Patrones Prohibidos
 - No agregar frameworks sin decisión D-X

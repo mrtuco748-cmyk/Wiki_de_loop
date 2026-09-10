@@ -22,6 +22,10 @@
 - **SPA:** Single Page Application (navegación manual)
 - **LS:** localStorage
 
+## Media
+- **bg-music:** `bg-music.mp3` (23.89MB 48k mono) + `bg-music.opus` (14.61MB 24k mono) `index.html:754` loop 40% fade 3.5s random start `index.html:2532` `TARGET_VOL` `FADE_IN_MS`
+- **fadeTo:** `index.html:2553` `requestAnimationFrame` easeOutCubic 0→0.4
+
 ## Estados
 - `type: principal | secundario` (badge en char-card)
 - `VIEW_NAMES: Frontal | Lateral | Posterior`
