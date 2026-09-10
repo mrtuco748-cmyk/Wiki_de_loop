@@ -1496,6 +1496,7 @@ function charTab(btn,tab){
    SISTEMA DE SECCIONES — Historia, Tramas, Ideas, Clanes, Técnicas
    ============================================= */
 
+function ensureIds(arr){ if(!Array.isArray(arr)) return arr; return arr.map(o=>{ if(!o.id) o.id=(crypto.randomUUID?crypto.randomUUID():'id_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)); return o; }); }
 const DEFAULT_HISTORIA = [
   { era:'El Origen', title:'Los Dioses y sus Universos', body:'Cada dios controla un universo y un planeta. El dios de este mundo es Hades, aunque ningún mortal lo sabe, pues los dioses jamás interactúan con sus creaciones.' },
   { era:'El Encuentro', title:'Tradden y Sincer', body:'Un campesino pobre y un joven noble se conocen y forjan una amistad que trasciende las clases.' },
@@ -1522,7 +1523,19 @@ const DEFAULT_TECNICAS = [
   { name:'Reflejo Total', owner:'Tunami', desc:'Desvía cualquier ataque.' }
 ];
 
-function sLoad(key, def){ try{ const v=localStorage.getItem(key); return v ? JSON.parse(v) : def; }catch(e){ return def; } }
+function sLoad(key, def){
+  try{
+    const v=localStorage.getItem(key);
+    if(!v) return def;
+    let arr=JSON.parse(v);
+    if(Array.isArray(arr) && MAP[key]){
+      let mutated=false;
+      arr=arr.map(o=>{ if(!o.id){ o.id=(crypto.randomUUID?crypto.randomUUID():'id_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)); mutated=true; } return o; });
+      if(mutated) try{ localStorage.setItem(key, JSON.stringify(arr)); }catch{}
+    }
+    return arr;
+  }catch(e){ return def; }
+}
 function sSave(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
 
 function _readSection(gridId, type){
@@ -1530,12 +1543,14 @@ function _readSection(gridId, type){
   if(!grid) return [];
   if(type === 'historia'){
     return [...grid.querySelectorAll('.timeline-event')].map(el=>({
+      id: el.dataset.id || (crypto.randomUUID?crypto.randomUUID():'id_'+Math.random().toString(36).slice(2,7)),
       era: el.querySelector('.event-era')?.textContent || '',
       title: el.querySelector('.event-title')?.textContent || '',
       body: el.querySelector('.event-body')?.textContent || ''
     }));
   }
   return [...grid.querySelectorAll('.idea-card')].map(el=>({
+    id: el.dataset.id || (crypto.randomUUID?crypto.randomUUID():'id_'+Math.random().toString(36).slice(2,7)),
     title: el.querySelector('.idea-title')?.textContent || '',
     body: el.querySelector('.idea-body')?.textContent || ''
   }));
@@ -1545,6 +1560,7 @@ function _readClanesSection(){
   const grid = document.getElementById('clanes-grid');
   if(!grid) return [];
   return [...grid.querySelectorAll('.clan-card')].map(el=>({
+    id: el.dataset.id || (crypto.randomUUID?crypto.randomUUID():'id_'+Math.random().toString(36).slice(2,7)),
     symbol: el.querySelector('.clan-symbol')?.textContent || '✦',
     name: el.querySelector('.clan-name')?.textContent || '',
     desc: el.querySelector('.clan-desc')?.textContent || ''
@@ -1555,6 +1571,7 @@ function _readTecnicasSection(){
   const list = document.getElementById('tecnicas-list');
   if(!list) return [];
   return [...list.querySelectorAll('.tecnica-item')].map(el=>({
+    id: el.dataset.id || (crypto.randomUUID?crypto.randomUUID():'id_'+Math.random().toString(36).slice(2,7)),
     name: el.querySelector('.tecnica-name')?.childNodes[0]?.textContent?.trim() || '',
     owner: el.querySelector('.tecnica-owner')?.textContent || '',
     desc: el.querySelector('.tecnica-desc')?.textContent || ''
@@ -1562,11 +1579,13 @@ function _readTecnicasSection(){
 }
 
 function renderHistoria(items){
+  items = ensureIds(items);
   const tl = document.getElementById('historia-timeline');
   tl.innerHTML = '';
   items.forEach((item, i) => {
     const el = document.createElement('div');
     el.className = 'timeline-event';
+    el.dataset.id = item.id;
     el.innerHTML = `
       <div style="display:flex;justify-content:space-between">
         <div class="event-era" contenteditable="true">${item.era}</div>
@@ -1579,11 +1598,13 @@ function renderHistoria(items){
 }
 
 function renderCards(gridId, items){
+  items = ensureIds(items);
   const grid = document.getElementById(gridId);
   grid.innerHTML = '';
   items.forEach((item, i) => {
     const el = document.createElement('div');
     el.className = 'idea-card';
+    el.dataset.id = item.id;
     el.innerHTML = `
       <div style="display:flex;justify-content:space-between">
         <div class="idea-title" contenteditable="true">${item.title}</div>
@@ -1595,11 +1616,13 @@ function renderCards(gridId, items){
 }
 
 function renderClanes(items){
+  items = ensureIds(items);
   const grid = document.getElementById('clanes-grid');
   grid.innerHTML = '';
   items.forEach((item, i) => {
     const el = document.createElement('div');
     el.className = 'clan-card';
+    el.dataset.id = item.id;
     el.innerHTML = `
       <div style="display:flex;justify-content:flex-end"><button onclick="deleteClan(${i})" style="background:none;border:none;color:var(--red2);cursor:pointer">✕</button></div>
       <span class="clan-symbol" contenteditable="true">${item.symbol}</span>
@@ -1610,11 +1633,13 @@ function renderClanes(items){
 }
 
 function renderTecnicas(items){
+  items = ensureIds(items);
   const list = document.getElementById('tecnicas-list');
   list.innerHTML = '';
   items.forEach((item, i) => {
     const el = document.createElement('div');
     el.className = 'tecnica-item';
+    el.dataset.id = item.id;
     el.innerHTML = `
       <div class="tecnica-name"><span contenteditable="true">${item.name}</span><span class="tecnica-chevron">▼</span><button onclick="deleteTecnica(${i})" style="background:none;border:none;color:var(--red2);cursor:pointer">✕</button></div>
       <div class="tecnica-owner" contenteditable="true">${item.owner}</div>
@@ -1626,7 +1651,7 @@ function renderTecnicas(items){
 
 function addHistoriaEvent(){
   const items = _readSection('historia-timeline','historia');
-  items.push({ era:'Nueva Era', title:'Nuevo Evento', body:'Descripción...' });
+  items.push({ id: crypto.randomUUID?crypto.randomUUID():'id_'+Date.now(), era:'Nueva Era', title:'Nuevo Evento', body:'Descripción...' });
   renderHistoria(items);
   sSave('loop_historia', items);
 }
@@ -1635,21 +1660,21 @@ function addCard(section){
   const key = section === 'tramas' ? 'tramas-grid' : 'ideas-grid';
   const storageKey = 'loop_' + section;
   const items = _readSection(key, section);
-  items.push({ title:'Nuevo Título', body:'Escribe aquí...' });
+  items.push({ id: crypto.randomUUID?crypto.randomUUID():'id_'+Date.now(), title:'Nuevo Título', body:'Escribe aquí...' });
   renderCards(key, items);
   sSave(storageKey, items);
 }
 
 function addClan(){
   const items = _readClanesSection();
-  items.push({ symbol:'⊕', name:'Nuevo Clan', desc:'Descripción...' });
+  items.push({ id: crypto.randomUUID?crypto.randomUUID():'id_'+Date.now(), symbol:'⊕', name:'Nuevo Clan', desc:'Descripción...' });
   renderClanes(items);
   sSave('loop_clanes', items);
 }
 
 function addTecnica(){
   const items = _readTecnicasSection();
-  items.push({ name:'Nueva Técnica', owner:'Personaje', desc:'Descripción...' });
+  items.push({ id: crypto.randomUUID?crypto.randomUUID():'id_'+Date.now(), name:'Nueva Técnica', owner:'Personaje', desc:'Descripción...' });
   renderTecnicas(items);
   sSave('loop_tecnicas', items);
 }
@@ -2212,10 +2237,18 @@ setupCanvasEvents();
 const MAP = { loop_historia:'historia_eventos', loop_tramas:'tramas', loop_ideas:'ideas', loop_clanes:'clanes', loop_tecnicas:'tecnicas' };
 const DIRECT_URL='https://hkvwczecoeqmgrqpyxme.supabase.co';
 const DIRECT_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrdndjemVjb2VxbWdycXB5eG1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwMzU4NDAsImV4cCI6MjEwNDYxMTg0MH0.9_HheUQwM1_SSj56BT4DGSg7jv0ZFBllv5MbK89so6Q';
-async function sbFetch(table, method='GET', body){
-  // Build mode: direct-only (Kong gateway ya pone CORS). Proxy eliminado porque Opera GX también lo bloquea en móvil y Vercel tiene ENOTFOUND IPv6.
-  const headers={ apikey: DIRECT_KEY, Authorization:'Bearer '+DIRECT_KEY, 'Content-Type':'application/json', Prefer:'return=representation' };
-  const url=DIRECT_URL+'/rest/v1/'+table + (method==='DELETE' ? '?id=neq.00000000-0000-0000-000000000000' : '');
+function ensureIds(arr){
+  return arr.map(o=>{
+    if(!o.id) o.id = (crypto.randomUUID ? crypto.randomUUID() : 'id_'+Date.now()+'_'+Math.random().toString(36).slice(2,7));
+    return o;
+  });
+}
+async function sbFetch(table, method='GET', body, extraHeaders={}){
+  const headers={ apikey: DIRECT_KEY, Authorization:'Bearer '+DIRECT_KEY, 'Content-Type':'application/json', Prefer:'return=representation', ...extraHeaders };
+  let url=DIRECT_URL+'/rest/v1/'+table;
+  if(method==='DELETE' && !body){
+    url+='?id=neq.00000000-0000-0000-0000-000000000000';
+  }
   const opts={method, headers};
   if(body && method!=='DELETE') opts.body=JSON.stringify(body);
   const r=await fetch(url, opts);
@@ -2224,18 +2257,20 @@ async function sbFetch(table, method='GET', body){
   if(!r.ok) throw new Error(r.status+' '+txt.slice(0,300));
   return data;
 }
-// Mappers Supabase -> localStorage format
+// Mappers Supabase -> localStorage format (incluye id para upsert)
 const mappers={
-  historia_eventos:r=>({era:r.era||'',title:r.title||'',body:r.body||''}),
-  tramas:r=>({title:r.title||'',body:r.body||''}),
-  ideas:r=>({title:r.title||'',body:r.body||''}),
-  clanes:r=>({symbol:r.symbol||'✦',name:r.name||'',desc:r.description||''}),
-  tecnicas:r=>({name:r.name||'',owner:r.owner||'',desc:r.description||''}),
+  historia_eventos:r=>({id:r.id, era:r.era||'',title:r.title||'',body:r.body||''}),
+  tramas:r=>({id:r.id, title:r.title||'',body:r.body||''}),
+  ideas:r=>({id:r.id, title:r.title||'',body:r.body||''}),
+  clanes:r=>({id:r.id, symbol:r.symbol||'✦',name:r.name||'',desc:r.description||''}),
+  tecnicas:r=>({id:r.id, name:r.name||'',owner:r.owner||'',desc:r.description||''}),
 };
-// Override sSave to sync - debounced + indicador visible
+// Override sSave to sync - debounced + upsert con ids (evita clones)
 const _origSave = window.sSave;
 let _saveTimers={};
 window.sSave = function(key,val){
+  // asegura ids antes de guardar local
+  if(Array.isArray(val)) val = ensureIds(val);
   _origSave(key,val);
   const table=MAP[key];
   if(!table) return;
@@ -2243,19 +2278,29 @@ window.sSave = function(key,val){
   clearTimeout(_saveTimers[table]);
   _saveTimers[table]=setTimeout(async()=>{
     setSyncStatus('Guardando '+table+'...');
-    const rows = Array.isArray(val)?val:[val];
+    const rows = ensureIds(Array.isArray(val)?val:[val]);
     const payload = rows.map(r=>{
-      if(table==='historia_eventos') return {title:r.title, body:r.body, era:r.era};
-      if(table==='clanes') return {name:r.name, symbol:r.symbol, description:r.desc};
-      if(table==='tecnicas') return {name:r.name, owner:r.owner, description:r.desc};
-      return {title:r.title, body:r.body};
+      if(table==='historia_eventos') return {id:r.id, title:r.title, body:r.body, era:r.era};
+      if(table==='clanes') return {id:r.id, name:r.name, symbol:r.symbol, description:r.desc};
+      if(table==='tecnicas') return {id:r.id, name:r.name, owner:r.owner, description:r.desc};
+      return {id:r.id, title:r.title, body:r.body};
     });
     try{
-      await sbFetch(table,'DELETE');
-      if(payload.length) await sbFetch(table,'POST',payload);
+      // upsert (merge-duplicates) evita clones, luego borra los que ya no están en local
+      if(payload.length) await sbFetch(table,'POST',payload, {Prefer:'resolution=merge-duplicates,return=representation'});
+      // borra en nube los ids que fueron eliminados localmente
+      try{
+        const cloud = await sbFetch(table,'GET');
+        const localIds = new Set(payload.map(p=>p.id));
+        const toDelete = cloud.filter(c=>!localIds.has(c.id)).map(c=>c.id);
+        for(const delId of toDelete){
+          await sbFetch(table,'DELETE', null, {}); // placeholder, usaremos fetch directo con id
+          await fetch(DIRECT_URL+'/rest/v1/'+table+'?id=eq.'+delId, {method:'DELETE', headers:{apikey:DIRECT_KEY, Authorization:'Bearer '+DIRECT_KEY}});
+        }
+      }catch(e){ console.warn('[sync] cleanup delete',e.message); }
       console.log('[sync] synced',table,payload.length);
       setSyncStatus('● Guardado '+table+' '+new Date().toLocaleTimeString());
-    }catch(e){ console.error('[sync] error',e.message); setSyncStatus('✕ Error '+table+': '+e.message.slice(0,50),false); }
+    }catch(e){ console.error('[sync] error',e.message); setSyncStatus('✕ Error '+table+': '+e.message.slice(0,70),false); }
   },400);
 };
 // Personajes sync
