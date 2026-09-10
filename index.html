@@ -2289,7 +2289,24 @@ window.addEventListener('online', flushQueue);
 // Hook guardar personajes
 const _saveChars = window._saveToStorage||window.saveCharactersToLocal;
 if(_saveChars) { const orig=_saveChars; const wrapped=()=>{orig(); window.syncCharactersToCloud();}; window._saveToStorage=wrapped; window.saveCharactersToLocal=wrapped; }
-console.log('[sync] offline-first Supabase vinculado');
+// FIX: contenteditable no guardaba nunca -> auto-save en blur/input
+function attachAutoSave(){
+  document.addEventListener('focusout', e=>{
+    if(!e.target.isContentEditable) return;
+    if(e.target.closest('#historia-timeline')){ const d=_readSection('historia-timeline','historia'); sSave('loop_historia',d); }
+    else if(e.target.closest('#tramas-grid')){ const d=_readSection('tramas-grid','tramas'); sSave('loop_tramas',d); }
+    else if(e.target.closest('#ideas-grid')){ const d=_readSection('ideas-grid','ideas'); sSave('loop_ideas',d); }
+    else if(e.target.closest('#clanes-grid')){ sSave('loop_clanes', _readClanesSection()); }
+    else if(e.target.closest('#tecnicas-list')){ sSave('loop_tecnicas', _readTecnicasSection()); }
+  });
+  // personajes info
+  ['cd-info','cd-name-origin','cd-story','cd-powers','cd-name','cd-role'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.addEventListener('blur', ()=>{ if(window.saveCurrentCharacter) saveCurrentCharacter(); });
+  });
+}
+attachAutoSave();
+console.log('[sync] offline-first Supabase vinculado + auto-save contenteditable');
 </script>
 
 </body>
