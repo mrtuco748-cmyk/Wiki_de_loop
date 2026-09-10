@@ -1,5 +1,15 @@
 # Historial — Wiki_de_loop
 
+## [2026-09-10 12:50] - FIX | Sync direct-first + Opera GX investigación
+**Resumen:** Investigación caso específico: Opera GX adblock + Vercel ENOTFOUND IPv6
+**Cambios:**
+- `index.html:2211` `sbFetch` invertido a direct-first (browser→Supabase Kong gateway) + proxy fallback; debounced `sSave` 400ms + `setSyncStatus` visible; diagnóstico `Failed to fetch` → mensaje adblock
+- Verificados vía websearch: GuardLayer 2026-07-17 (CORS falso por env/401), Vercel community ENOTFOUND por IPv6-only Supabase free (sin IPv4 add-on), Opera GX adblock nativo bloquea `*.supabase.co` (WebProNews 2025-11-10)
+- Proxy `hkvwcze` verificado GET 200 (3 filas), direct GET 200 (3 filas) tras migración
+**Lecciones:** Vercel Functions no soporta IPv6 (requiere IPv4 add-on o direct browser), Opera GX requiere desactivar escudo/adblock para `supabase.co`, `Access-Control-Allow-Origin` ya lo pone Kong gateway.
+**Impacto:** Sync robusto cross-device, indicador `● Sync OK` / `✕ Sync FAIL` en UI, `forceSyncAll()` expuesto.
+**Relacionado:** api/sync.js:1, docs/contexto/arquitectura.md, errores-conocidos.md
+
 ## [2026-09-10 12:40] - FEATURE | Supabase offline-first sync
 **Resumen:** Integración Supabase hkvwczecoeqmgrqpyxme + Vercel + sync automático
 **Cambios:**
