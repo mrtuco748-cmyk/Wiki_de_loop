@@ -3,9 +3,9 @@
 ## Stack Tecnológico
 - **Lenguaje:** HTML5, CSS3, JavaScript vanilla (sin framework, sin bundler)
 - **Estilos:** CSS custom properties (:root), Google Fonts (Cinzel, IM Fell English), canvas 2D
-- **Persistencia:** offline-first: localStorage cache (`loop_historia`, `loop_tramas`, `loop_ideas`, `loop_clanes`, `loop_tecnicas`, `loop_characters`) + Supabase (tablas `personajes`, `clanes`, `tecnicas`, `historia_eventos`, `tramas`, `ideas`, `accesorios`, `hotspots`, `skill_nodes`) via `index.html:2206` `sbFetch` + `api/sync.js:1`
-- **Runtime:** Browser-only, single file `index.html` (~2330 líneas) + Vercel serverless `api/sync.js`. Sin build.
-- **Infra:** Vercel (https://wiki-de-loop.vercel.app) + Supabase `hkvwczecoeqmgrqpyxme.supabase.co` (proyecto hkvwczecoeqmgrqpyxme). Tablas creadas con `supabase/migrations/001_wiki_loop.sql:1`
+- **Persistencia:** offline-first totalmente automático: localStorage cache + Supabase (9 tablas) via `index.html:2212` `sbFetch` direct-only + upsert con `id` + polling 3s. Sin botones manuales.
+- **Runtime:** Browser-only `index.html` (~2430 líneas) + `api/sync.js` no usado (direct). Sin build.
+- **Infra:** Vercel https://wiki-de-loop.vercel.app + Supabase `hkvwczecoeqmgrqpyxme.supabase.co` (hkvwczecoeqmgrqpyxme). Tablas `001_wiki_loop.sql:1` con RLS public. Build `367ab6c`
 
 ## Mapa de Carpetas
 ```
@@ -23,9 +23,9 @@ Wiki_de_loop/
 
 ## Flujo de Datos
 ```
-Usuario → navigate()/contenteditable/canvas → charData → sSave() → localStorage → sbFetch() → /api/sync → Supabase
-Al iniciar (online): sbFetch GET → localStorage → renderHistoria/renderCards/renderClanes/renderTecnicas
-Si nube vacía: auto-push local → Supabase. Si offline: local only, sync al reconectar (online→reload).
+Usuario → contenteditable/input/ +Nuevo/✕ → _read*() → ensureIds() → sSave() → localStorage → sbFetch POST upsert (merge-duplicates) → Supabase
+Polling 3s: sbFetch GET → compara cloud vs local (con ids) → si difiere y no hay focus ni _saveTimers → localStorage + re-render
+Al iniciar: GET cloud → si vacío y local tiene → sSave(local); si cloud tiene → local = cloud → render
 ```
 - Datos default en `DEFAULT_*` + `charData` hardcoded. Al cargar: `sLoad()` mergea con localStorage, y `loop_characters` mergea personajes.
 

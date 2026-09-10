@@ -1,5 +1,16 @@
 # Historial — Wiki_de_loop
 
+## [2026-09-10 13:05] - FIX | Totalmente automático + upsert con ids
+**Resumen:** Fix cloning (30/20 duplicados) y guardado (solo tramas) → upsert con ids + polling
+**Cambios:**
+- `index.html:2208` `ensureIds()` + `sLoad` migra ids, `render*` guarda `dataset.id`, `_read*` lee id, `add*` genera `crypto.randomUUID`, `mappers` incluyen `id`, `sSave` debounced 400ms hace `POST ... Prefer: resolution=merge-duplicates` + borra solo ids eliminados (evita DELETE all)
+- `sbFetch` direct-only (sin proxy, Vercel ENOTFOUND IPv6 + Opera bloquea proxy), `attachAutoSave` en `input` 600ms + `focusout`, `pollOnce` cada 3s con check `_saveTimers` y `contenteditable:focus` para no pisar, `visibilitychange` y `testSync` sin botones manuales (`367ab6c`)
+- Supabase limpio a defaults: `historia 3, tramas 2, ideas 2, clanes 2, tecnicas 2` verificado `GET 200`
+- Vercel deploy `367ab6c` verificado `●` indicador solo, sin `↻/↺`
+**Lecciones:** DELETE all + POST sin id estable causa clones; polling sin guardar timers pisa edición; Opera GX requiere direct con Kong CORS, no proxy Vercel.
+**Impacto:** CRUD totalmente automático en vivo (agregar/editar/borrar → Supabase → otro dispositivo en 3-4s), sin botones, sin clones.
+**Relacionado:** decisiones.md D-8, arquitectura.md, errores-conocidos.md
+
 ## [2026-09-10 12:50] - FIX | Sync direct-first + Opera GX investigación
 **Resumen:** Investigación caso específico: Opera GX adblock + Vercel ENOTFOUND IPv6
 **Cambios:**

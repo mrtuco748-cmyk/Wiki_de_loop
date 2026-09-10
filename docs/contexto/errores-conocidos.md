@@ -24,13 +24,14 @@
 ### BAJA - Sin tests ni linter
 - **Fix:** Agregar `eslint` + `vitest` si se migra a Vite.
 
-### RESUELTO 2026-09-10 - Sync no guardaba en Supabase
-- **Causa:** `contenteditable` no llamaba `sSave`, `supabase-js` CDN fallaba, Opera GX bloqueaba `supabase.co`, proyecto viejo borrado `ekabsuqctklmbnpefowc` (ENOTFOUND), anon key cambiada.
-- **Fix:** `attachAutoSave`, `sbFetch` fetch directo + proxy `/api/sync` con fallback, migración a `hkvwczecoeqmgrqpyxme`, anon key `eyJ...`. Verificado proxy 200.
+### RESUELTO 2026-09-10 - Sync no guardaba / solo tramas / clones 30x
+- **Causa:** `contenteditable` sin `sSave`, `supabase-js` CDN, Opera adblock, proyecto `ekabsuqctklmbnpefowc` ENOTFOUND, `DELETE+POST` sin `id` causaba clones y payload sin `id` solo funcionaba tramas.
+- **Fix:** `ensureIds` + upsert con `id` estable + `Prefer: resolution=merge-duplicates`, `sbFetch` direct-only, `attachAutoSave` input+blur, `pollOnce` 3s. Verificado `367ab6c` 2-3 filas por tabla sin clones, CRUD en vivo.
+- **Verificado 13:05:** `historia 3, tramas 2, ideas 2, clanes 2, tecnicas 2` sin clones.
 
 ### ALTA - Visual/visibilidad inconsistente
 - **Dónde:** responsive `index.html:555-719`, viewer, hotspots, contraste gold/dark
 - **Qué:** Reportado como principal dolor. Elementos poco visibles según viewport.
 - **Fix:** Auditoría visual + tokens de contraste + QA en 320/768/1024.
 
-Última revisión: 2026-09-10 12:40 — sync verificado proxy OK
+Última revisión: 2026-09-10 13:10 — totalmente automático sin botones, verificado sin clones

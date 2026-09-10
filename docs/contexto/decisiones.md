@@ -37,18 +37,23 @@
 - **Impacto:** Marca fuerte, CSS pesado en móvil.
 - **Revisable:** No (core visual).
 
-### D-6: Proxy Vercel /api/sync con fallback directo
-- **Fecha:** 2026-09-10
-- **Qué:** `api/sync.js:1` lee `SUPABASE_URL/ANON_KEY` de env Vercel-Supabase, frontend `sbFetch` intenta proxy luego direct fetch.
-- **Por qué:** Evita CORS/ad-block Opera GX y usa credenciales de integración Vercel.
-- **Impacto:** Sync funciona en PC/celular. Si proxy falla (ENOTFOUND 500) hace fallback direct.
-- **Revisable:** Sí.
+### D-6: Proxy Vercel /api/sync (deprecado)
+- **Fecha:** 2026-09-10 → Deprecado 2026-09-10 13:05
+- **Qué:** `api/sync.js:1` existió para evitar Opera adblock, pero Vercel IPv6 ENOTFOUND y Opera también bloquea proxy. Reemplazado por direct-only.
+- **Impacto:** Proxy aún existe pero no se usa (sbFetch direct-only). Mantener para debug.
+- **Revisable:** Eliminar si no se necesita.
 
-### D-7: Auto-save contenteditable
-- **Fecha:** 2026-09-10
-- **Qué:** `index.html:2292` `attachAutoSave()` en `focusout` dispara `sSave` → sync. Personajes en `blur`.
-- **Por qué:** Antes editar texto no guardaba nunca.
-- **Impacto:** Ediciones persisten sin botón guardar.
+### D-7: Auto-save contenteditable + polling
+- **Fecha:** 2026-09-10 → Actualizado 13:05
+- **Qué:** `attachAutoSave()` en `input` 600ms + `focusout` + `pollOnce` cada 3s (no pisa `contenteditable:focus` ni `_saveTimers`).
+- **Por qué:** Edición en vivo sin botón, y cambios del otro dispositivo sin recargar.
+- **Impacto:** Totalmente automático.
+
+### D-8: Upsert con ids estables (fix clones)
+- **Fecha:** 2026-09-10 13:05
+- **Qué:** `ensureIds`, `sLoad` migra ids, `render*`/`_read*`/`add*` preservan `id`, `sSave` hace `POST Prefer: resolution=merge-duplicates` + delete solo ids removidos.
+- **Por qué:** DELETE+POST sin id causaba clones (30/20 filas) y solo tramas guardaba (payload sin id).
+- **Impacto:** Sin clones, todos los CRUD (5 tablas) funcionan, `367ab6c` verificado.
 - **Revisable:** No.
 
 ## Próximas decisiones pendientes
