@@ -2308,6 +2308,19 @@ const _saveChars = window._saveToStorage||window.saveCharactersToLocal;
 if(_saveChars) { const orig=_saveChars; const wrapped=()=>{orig(); window.syncCharactersToCloud();}; window._saveToStorage=wrapped; window.saveCharactersToLocal=wrapped; }
 // FIX: contenteditable no guardaba nunca -> auto-save en blur/input
 function attachAutoSave(){
+  let ceTimer=null;
+  const ceSave = e=>{
+    if(!e.target.isContentEditable) return;
+    clearTimeout(ceTimer);
+    ceTimer=setTimeout(()=>{
+      if(e.target.closest('#historia-timeline')){ const d=_readSection('historia-timeline','historia'); sSave('loop_historia',d); }
+      else if(e.target.closest('#tramas-grid')){ const d=_readSection('tramas-grid','tramas'); sSave('loop_tramas',d); }
+      else if(e.target.closest('#ideas-grid')){ const d=_readSection('ideas-grid','ideas'); sSave('loop_ideas',d); }
+      else if(e.target.closest('#clanes-grid')){ sSave('loop_clanes', _readClanesSection()); }
+      else if(e.target.closest('#tecnicas-list')){ sSave('loop_tecnicas', _readTecnicasSection()); }
+    },800);
+  };
+  document.addEventListener('input', ceSave);
   document.addEventListener('focusout', e=>{
     if(!e.target.isContentEditable) return;
     if(e.target.closest('#historia-timeline')){ const d=_readSection('historia-timeline','historia'); sSave('loop_historia',d); }
