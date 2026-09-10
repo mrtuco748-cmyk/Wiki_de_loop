@@ -17,16 +17,20 @@
 - **Dónde:** `renderHistoria`, `renderCards` usan `textContent` ok, pero `innerHTML` en spots sin escape completo.
 - **Fix:** Usar `escapeHtml` siempre; ya existe `index.html:2095`.
 
-### BAJA - Sin export/import backup
-- **Dónde:** solo `sSave/sLoad`.
-- **Fix:** Botones Export JSON / Import JSON.
+### BAJA - Sin export/import backup → Mitigado
+- **Dónde:** `supabase/migrate-localStorage.html:1` y sync automático cubren backup.
+- **Fix:** Ya no crítico.
 
 ### BAJA - Sin tests ni linter
 - **Fix:** Agregar `eslint` + `vitest` si se migra a Vite.
+
+### RESUELTO 2026-09-10 - Sync no guardaba en Supabase
+- **Causa:** `contenteditable` no llamaba `sSave`, `supabase-js` CDN fallaba, Opera GX bloqueaba `supabase.co`, proyecto viejo borrado `ekabsuqctklmbnpefowc` (ENOTFOUND), anon key cambiada.
+- **Fix:** `attachAutoSave`, `sbFetch` fetch directo + proxy `/api/sync` con fallback, migración a `hkvwczecoeqmgrqpyxme`, anon key `eyJ...`. Verificado proxy 200.
 
 ### ALTA - Visual/visibilidad inconsistente
 - **Dónde:** responsive `index.html:555-719`, viewer, hotspots, contraste gold/dark
 - **Qué:** Reportado como principal dolor. Elementos poco visibles según viewport.
 - **Fix:** Auditoría visual + tokens de contraste + QA en 320/768/1024.
 
-Última revisión: 2026-09-10
+Última revisión: 2026-09-10 12:40 — sync verificado proxy OK
