@@ -2340,36 +2340,66 @@ window.addEventListener('online', ()=>location.reload());
 // Hook guardar personajes
 const _saveChars = window._saveToStorage||window.saveCharactersToLocal;
 if(_saveChars) { const orig=_saveChars; const wrapped=()=>{orig(); window.syncCharactersToCloud();}; window._saveToStorage=wrapped; window.saveCharactersToLocal=wrapped; }
-// FIX: contenteditable no guardaba nunca -> auto-save en blur/input
+// Auto-save contenteditable: input (debounced) + blur inmediato
 function attachAutoSave(){
   let ceTimer=null;
   const ceSave = e=>{
     if(!e.target.isContentEditable) return;
     clearTimeout(ceTimer);
     ceTimer=setTimeout(()=>{
-      if(e.target.closest('#historia-timeline')){ const d=_readSection('historia-timeline','historia'); sSave('loop_historia',d); }
-      else if(e.target.closest('#tramas-grid')){ const d=_readSection('tramas-grid','tramas'); sSave('loop_tramas',d); }
-      else if(e.target.closest('#ideas-grid')){ const d=_readSection('ideas-grid','ideas'); sSave('loop_ideas',d); }
-      else if(e.target.closest('#clanes-grid')){ sSave('loop_clanes', _readClanesSection()); }
-      else if(e.target.closest('#tecnicas-list')){ sSave('loop_tecnicas', _readTecnicasSection()); }
-    },800);
+      if(e.target.closest('#historia-timeline')) sSave('loop_historia',_readSection('historia-timeline','historia'));
+      else if(e.target.closest('#tramas-grid')) sSave('loop_tramas',_readSection('tramas-grid','tramas'));
+      else if(e.target.closest('#ideas-grid')) sSave('loop_ideas',_readSection('ideas-grid','ideas'));
+      else if(e.target.closest('#clanes-grid')) sSave('loop_clanes', _readClanesSection());
+      else if(e.target.closest('#tecnicas-list')) sSave('loop_tecnicas', _readTecnicasSection());
+    },600);
   };
   document.addEventListener('input', ceSave);
   document.addEventListener('focusout', e=>{
     if(!e.target.isContentEditable) return;
-    if(e.target.closest('#historia-timeline')){ const d=_readSection('historia-timeline','historia'); sSave('loop_historia',d); }
-    else if(e.target.closest('#tramas-grid')){ const d=_readSection('tramas-grid','tramas'); sSave('loop_tramas',d); }
-    else if(e.target.closest('#ideas-grid')){ const d=_readSection('ideas-grid','ideas'); sSave('loop_ideas',d); }
-    else if(e.target.closest('#clanes-grid')){ sSave('loop_clanes', _readClanesSection()); }
-    else if(e.target.closest('#tecnicas-list')){ sSave('loop_tecnicas', _readTecnicasSection()); }
+    clearTimeout(ceTimer);
+    if(e.target.closest('#historia-timeline')) sSave('loop_historia',_readSection('historia-timeline','historia'));
+    else if(e.target.closest('#tramas-grid')) sSave('loop_tramas',_readSection('tramas-grid','tramas'));
+    else if(e.target.closest('#ideas-grid')) sSave('loop_ideas',_readSection('ideas-grid','ideas'));
+    else if(e.target.closest('#clanes-grid')) sSave('loop_clanes', _readClanesSection());
+    else if(e.target.closest('#tecnicas-list')) sSave('loop_tecnicas', _readTecnicasSection());
   });
-  // personajes info
   ['cd-info','cd-name-origin','cd-story','cd-powers','cd-name','cd-role'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.addEventListener('blur', ()=>{ if(window.saveCurrentCharacter) saveCurrentCharacter(); });
   });
 }
 attachAutoSave();
+// Polling realtime: cada 4s trae de Supabase y re-renderiza si cambió (para ver cambios del otro dispositivo sin recargar)
+let _polling=false;
+async function pollOnce(){
+  if(_polling) return;
+  if(document.querySelector('[contenteditable]:focus')) return; // no pisar mientras edita
+  _polling=true;
+  try{
+    for(const [lsKey, table] of Object.entries(MAP)){
+      try{
+        const cloud = await sbFetch(table,'GET');
+        const local = sLoad(lsKey, []);
+        const cloudStr = JSON.stringify(ensureIds(cloud.map(mappers[table])).sort((a,b)=>(a.id||'').localeCompare(b.id||'')));
+        const localStr = JSON.stringify(ensureIds(local).sort((a,b)=>(a.id||'').localeCompare(b.id||'')));
+        if(cloudStr !== localStr){
+          localStorage.setItem(lsKey, JSON.stringify(cloud.map(mappers[table])));
+          // re-render solo la sección correspondiente
+          if(table==='historia_eventos') renderHistoria(sLoad(lsKey, DEFAULT_HISTORIA));
+          else if(table==='tramas') renderCards('tramas-grid', sLoad(lsKey, DEFAULT_TRAMAS));
+          else if(table==='ideas') renderCards('ideas-grid', sLoad(lsKey, DEFAULT_IDEAS));
+          else if(table==='clanes') renderClanes(sLoad(lsKey, DEFAULT_CLANES));
+          else if(table==='tecnicas') renderTecnicas(sLoad(lsKey, DEFAULT_TECNICAS));
+          console.log('[poll] actualizado',table);
+        }
+      }catch(e){ /* ignora, testSync mostrará error */ }
+    }
+    testSync();
+  }finally{_polling=false;}
+}
+setInterval(pollOnce, 4000);
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) pollOnce(); });
 function setSyncStatus(t,ok=true){ const el=document.getElementById('sync-status'); if(!el) return; el.textContent=(ok?'● ':'✕ ')+t; el.style.borderColor=ok?'var(--gold)':'var(--red2)'; el.style.color=ok?'var(--gold)':'#e88'; console.log('[sync-status]',t); }
 async function testSync(){ try{ const d=await sbFetch('tramas','GET'); setSyncStatus('● Sync OK ('+d.length+' tramas) '+new Date().toLocaleTimeString().slice(0,5)); }catch(e){ const isBlocked=e.message.includes('Failed to fetch')||e.message.includes('NetworkError'); const msg=isBlocked?'Opera GX bloquea supabase.co → desactiva escudo/adblock en opera://settings':e.message.slice(0,70); setSyncStatus('✕ Sync FAIL: '+msg,false); console.error('[sync] testSync',e); } }
 window.clearLocalAndReload = async()=>{
