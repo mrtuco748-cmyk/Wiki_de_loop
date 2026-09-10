@@ -1,5 +1,19 @@
 # Historial — Wiki_de_loop
 
+## [2026-09-10 20:00] - FIX | Hash-routing seguro + Fix polling _saveTimers
+**Resumen:** Reescrito hash-routing para no interferir con carga de datos + fix bug crítico en polling Supabase
+**Cambios:**
+- `index.html` `navigate()` revirtido a versión original (sin param charId ni pushState dentro)
+- `index.html` `_updateHash(section)` y `_updateHashChar(charId)` funciones auxiliares que usan `replaceState`
+- `index.html` Listener `DOMContentLoaded` eliminado (causaba race condition con Supabase init)
+- `index.html` Listener `popstate` y hash init movidos a `window.addEventListener('load')` para que corran DESPUÉS de que toda la data se cargue
+- `index.html:2689` Fix: `_saveTimers[table]=null` al final del callback de sSave — sin esto, una vez que se guardaba una tabla, el polling nunca más la revisaba
+- `index.html:2893` Fix: guard de polling corregido de `_saveTimers[MAP[k]]` a `_saveTimers[k]` (MAP[k] retornaba undefined)
+- `index.html:2625` Fix: `ensureIds` agregado guard `if(!Array.isArray(arr)) return arr` para evitar TypeError
+**Lecciones:** `DOMContentLoaded` corre ANTES de `load` → los datos de Supabase aún no están cargados; `_saveTimers` debe limpiarse después del callback para que el polling funcione; `MAP` invierte las keys (localStorage→table), no se puede usar al revés.
+**Impacto:** Secciones ahora muestran datos de Supabase correctamente; polling funciona después de guardar; hash-routing funciona sin romper carga de datos.
+**Relacionado:** decisiones.md, arquitectura.md
+
 ## [2026-09-10] - FEATURE | Icon picker FA+Emoji + Fix sync + Sync accesorios/hotspots
 **Resumen:** Icon picker visual reutilizable (Font Awesome + Unicode emojis), fix discrepancia emoji/icon en sync personajes, y sync completo de accesorios y hotspots a Supabase
 **Cambios:**
@@ -27,10 +41,9 @@
 - `index.html` función `navigate()` modificada para soportar hash-routing: actualiza `history.pushState` al navegar entre secciones
 - `index.html` `openChar()` modificado para push a `#personaje/{id}` al abrir personaje
 - `index.html` `closeChar()` modificado para replace a `#personajes` al cerrar detalle
-- `index.html` Listener `DOMContentLoaded` para detectar hash al cargar (links directos)
-- `index.html` Listener `popstate` para manejar botones atrás/adelante del navegador
+- `index.html` Listener `popstate` y hash init registrados en `load` (no en DOMContentLoaded) para evitar race condition
 - URLs generadas: `#` (home), `#historia`, `#personajes`, `#personaje/{id}`, `#clanes`, `#ideas`, `#tramas`, `#tecnicas`
-**Lecciones:** Hash-routing es la forma más simple de dar URLs únicas en SPA sin framework; `popstate` sincroniza el estado visual con la URL del navegador.
+**Lecciones:** Hash-routing requiere que los listeners corran DESPUÉS de la carga completa de datos (load event); `DOMContentLoaded` es demasiado temprano para SPAs con async init; `replaceState` es preferido sobre `pushState` para evitar entradas duplicadas en el historial.
 **Impacto:** Links compartibles para cada pantalla; navegación con botones atrás/adelante funciona; se puede acceder directamente a un personaje con URL.
 **Relacionado:** decisiones.md, arquitectura.md
 

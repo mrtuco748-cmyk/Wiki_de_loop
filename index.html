@@ -1125,50 +1125,57 @@ document.addEventListener('click',e=>{
   }
 });
 
-// Navegación con hash-routing
-function navigate(section, charId){
+// Navegación
+function navigate(section){
   document.querySelectorAll('.section-page').forEach(p=>p.classList.remove('active'));
   document.getElementById('home-screen').style.display='none';
   if(section==='home'){
     document.getElementById('home-screen').style.display='flex';
     closeChar();
-    history.pushState(null,'','#');
   } else {
     const pg=document.getElementById(section);
     if(pg){pg.classList.add('active');}
     if(section==='personajes') closeChar();
-    if(section==='personajes' && charId){
-      setTimeout(()=>openChar(charId),50);
-      history.pushState(null,'','#personaje/'+charId);
-    } else {
-      history.pushState(null,'','#'+section);
-    }
   }
   window.scrollTo({top:0,behavior:'smooth'});
+  _updateHash(section);
 }
 
-// Detectar hash al cargar para links directos
-window.addEventListener('DOMContentLoaded', ()=>{
-  const h = location.hash.replace('#','');
-  if(h.startsWith('personaje/')){
-    const charId = h.split('/')[1];
-    navigate('personajes', charId);
-  } else if(h && h!=='home'){
-    navigate(h);
-  }
-});
+// Hash-routing: actualizar URL sin interferir con carga de datos
+function _updateHash(section){
+  if(section==='home'){ history.replaceState(null,'','#'); return; }
+  history.replaceState(null,'','#'+section);
+}
+function _updateHashChar(charId){
+  history.replaceState(null,'','#personaje/'+charId);
+}
 
-// Manejar botones atrás/adelante del navegador
-window.addEventListener('popstate', ()=>{
+// Manejar botones atrás/adelante del navegador (después de load)
+window.addEventListener('load', ()=>{
+  // Aplicar hash inicial si existe
   const h = location.hash.replace('#','');
-  if(!h || h==='home'){
-    navigate('home');
-  } else if(h.startsWith('personaje/')){
-    const charId = h.split('/')[1];
-    navigate('personajes', charId);
-  } else {
-    navigate(h);
+  if(h && h!=='home'){
+    if(h.startsWith('personaje/')){
+      const charId = h.split('/')[1];
+      navigate('personajes');
+      setTimeout(()=>openChar(charId),100);
+    } else {
+      navigate(h);
+    }
   }
+
+  window.addEventListener('popstate', ()=>{
+    const h2 = location.hash.replace('#','');
+    if(!h2 || h2==='home'){
+      navigate('home');
+    } else if(h2.startsWith('personaje/')){
+      const charId = h2.split('/')[1];
+      navigate('personajes');
+      setTimeout(()=>openChar(charId),100);
+    } else {
+      navigate(h2);
+    }
+  });
 });
 
 // Técnicas accordion
@@ -1339,7 +1346,6 @@ function closeChar(){
   document.getElementById('chars-grid').style.display='grid';
   document.getElementById('char-detail').classList.remove('active');
   currentChar=null;
-  history.replaceState(null,'','#personajes');
 }
 
 // ─── VISTAS E IMÁGENES ────────────────────────────────────────────────────────
@@ -2102,7 +2108,7 @@ const _openCharBase = openChar;
 openChar = function(id){
   _openCharBase(id);
   _buildCharEditor(id);
-  history.pushState(null,'','#personaje/'+id);
+  _updateHashChar(id);
 };
 
 function _buildCharEditor(id){
@@ -2616,6 +2622,7 @@ const MAP = { loop_historia:'historia_eventos', loop_tramas:'tramas', loop_ideas
 const DIRECT_URL='https://hkvwczecoeqmgrqpyxme.supabase.co';
 const DIRECT_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrdndjemVjb2VxbWdycXB5eG1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwMzU4NDAsImV4cCI6MjEwNDYxMTg0MH0.9_HheUQwM1_SSj56BT4DGSg7jv0ZFBllv5MbK89so6Q';
 function ensureIds(arr){
+  if(!Array.isArray(arr)) return arr;
   return arr.map(o=>{
     if(!o.id) o.id = (crypto.randomUUID ? crypto.randomUUID() : 'id_'+Date.now()+'_'+Math.random().toString(36).slice(2,7));
     return o;
@@ -2679,6 +2686,7 @@ window.sSave = function(key,val){
       console.log('[sync] synced',table,payload.length);
       setSyncStatus('● Guardado '+table+' '+new Date().toLocaleTimeString());
     }catch(e){ console.error('[sync] error',e.message); setSyncStatus('✕ Error '+table+': '+e.message.slice(0,70),false); }
+    _saveTimers[table]=null;
   },400);
 };
 // Personajes sync - upsert con ids, borra eliminados (fix: charData no window.charData)
@@ -2883,7 +2891,7 @@ async function pollOnce(){
   if(_polling) return;
   if(document.querySelector('[contenteditable]:focus')) return;
   if(document.querySelector('#_char-icon:focus, #_char-type:focus')) return;
-  if(Object.keys(_saveTimers).some(k=>_saveTimers[MAP[k]])) return;
+  if(Object.keys(_saveTimers).some(k=>_saveTimers[k])) return;
   if(_charSaveTimer) return;
   _polling=true;
   try{
