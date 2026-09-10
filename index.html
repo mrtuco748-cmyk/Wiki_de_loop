@@ -2204,13 +2204,11 @@ setupCanvasEvents();
 </script>
 
 <script>
-const SUPA_URL='https://ekabsuqctklmbnpefowc.supabase.co';
-const SUPA_KEY='sb_publishable_Ku3yWdzyLQJy1G8gGHJK4A_VE_gCGtQ';
 const MAP = { loop_historia:'historia_eventos', loop_tramas:'tramas', loop_ideas:'ideas', loop_clanes:'clanes', loop_tecnicas:'tecnicas' };
 async function sbFetch(table, method='GET', body){
-  const headers={ apikey: SUPA_KEY, Authorization:'Bearer '+SUPA_KEY, 'Content-Type':'application/json', Prefer:'return=representation' };
-  const url=SUPA_URL+'/rest/v1/'+table;
-  const opts={method, headers};
+  // Usa proxy Vercel /api/sync?table= para usar env vars de la integración Vercel-Supabase (evita CORS/bloqueos Opera)
+  const url='/api/sync?table='+table;
+  const opts={method, headers:{'Content-Type':'application/json'}};
   if(body) opts.body=JSON.stringify(body);
   const r=await fetch(url, opts);
   const txt=await r.text();
@@ -2243,8 +2241,6 @@ window.sSave = function(key,val){
     });
     try{
       await sbFetch(table,'DELETE');
-      // Supabase REST delete without filter deletes nothing, use ?id=neq.000... via direct fetch
-      await fetch(SUPA_URL+'/rest/v1/'+table+'?id=neq.00000000-0000-0000-0000-000000000000',{method:'DELETE', headers:{apikey:SUPA_KEY, Authorization:'Bearer '+SUPA_KEY}});
       if(payload.length) await sbFetch(table,'POST',payload);
       console.log('[sync] synced',table,payload.length);
     }catch(e){ console.error('[sync] error',e.message); }

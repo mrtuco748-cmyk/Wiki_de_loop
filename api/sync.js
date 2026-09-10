@@ -3,8 +3,8 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods','GET,POST,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers','Content-Type, Authorization');
   if(req.method==='OPTIONS') return res.status(200).end();
-  const SUPABASE_URL='https://ekabsuqctklmbnpefowc.supabase.co';
-  const KEY=process.env.SUPABASE_ANON_KEY || 'sb_publishable_Ku3yWdzyLQJy1G8gGHJK4A_VE_gCGtQ';
+  const SUPABASE_URL=process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ekabsuqctklmbnpefowc.supabase.co';
+  const KEY=process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || 'sb_publishable_Ku3yWdzyLQJy1G8gGHJK4A_VE_gCGtQ';
   const table=req.query.table;
   if(!table) return res.status(400).json({error:'missing table'});
   const url=`${SUPABASE_URL}/rest/v1/${table}`;
