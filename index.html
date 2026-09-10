@@ -2271,11 +2271,25 @@ window.syncCharactersToCloud = async function(){
     await supabase.from('personajes').upsert({id, name:c.name, emoji:c.emoji, role:c.role, type:c.type||'secundario', info:c.info, name_origin:c.nameOrigin, story:c.story, powers:c.powers, images:c.images||[null,null,null]});
   }}catch{}
 };
-// Load from cloud on start if online
+// Load from cloud on start if online - AUTO PUSH si nube vacía
 if(navigator.onLine){
   (async()=>{
-    await Promise.all(Object.entries(MAP).map(([k,t])=>syncTable(k,t,mappers[t])));
-    // re-render after cloud pull
+    for(const [lsKey, table] of Object.entries(MAP)){
+      try{
+        const {data} = await supabase.from(table).select('*');
+        const local = sLoad(lsKey, null);
+        const hasLocal = local && Array.isArray(local) && local.length > 0 && JSON.stringify(local) !== JSON.stringify({historia_eventos:DEFAULT_HISTORIA,tramas:DEFAULT_TRAMAS,ideas:DEFAULT_IDEAS,clanes:DEFAULT_CLANES,tecnicas:DEFAULT_TECNICAS}[table]);
+        if(!data || data.length===0){
+          // nube vacía -> subir lo local (o defaults si es primera vez)
+          if(hasLocal){ console.log('[sync] nube vacía, subiendo',lsKey); sSave(lsKey, local); }
+          continue;
+        }
+        // nube con datos -> bajar a local
+        const mapper=mappers[table];
+        const mapped=data.map(mapper).filter(Boolean);
+        if(mapped.length) localStorage.setItem(lsKey, JSON.stringify(mapped));
+      }catch(e){ console.error('[sync] init',table,e); }
+    }
     try{
       if(window.renderHistoria) renderHistoria(sLoad('loop_historia', DEFAULT_HISTORIA));
       if(window.renderCards){ renderCards('tramas-grid', sLoad('loop_tramas', DEFAULT_TRAMAS)); renderCards('ideas-grid', sLoad('loop_ideas', DEFAULT_IDEAS)); }
@@ -2283,6 +2297,11 @@ if(navigator.onLine){
       if(window.renderTecnicas) renderTecnicas(sLoad('loop_tecnicas', DEFAULT_TECNICAS));
     }catch{}
     flushQueue();
+    // también subir personajes locales si nube vacía
+    try{
+      const {data: chars} = await supabase.from('personajes').select('id');
+      if(!chars || chars.length===0) window.syncCharactersToCloud();
+    }catch{}
   })();
 }
 window.addEventListener('online', flushQueue);
