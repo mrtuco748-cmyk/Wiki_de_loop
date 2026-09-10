@@ -1437,12 +1437,27 @@ function openHotspotEditor(idx){
     <input id="_he-title" value="${h.title}">
     <label>DESCRIPCIÓN</label>
     <textarea id="_he-desc" rows="3">${h.desc}</textarea>
+    <div style="font-size:0.55rem;color:var(--gold);opacity:0.5;text-align:center;margin-top:4px">● Auto-guardado</div>
     <div class="panel-actions">
-      <button class="back-btn" onclick="saveHotspotEdit(${idx})">✓ Guardar</button>
-      <button class="back-btn" onclick="deleteHotspot(${idx})" style="border-color:var(--red2);color:#e88">🗑</button>
-      <button class="back-btn" onclick="area_clearPanels()">✕</button>
+      <button class="back-btn" onclick="deleteHotspot(${idx})" style="border-color:var(--red2);color:#e88">🗑 Eliminar</button>
+      <button class="back-btn" onclick="area_clearPanels()">✕ Cerrar</button>
     </div>`;
   area.appendChild(panel);
+  const autoSaveHotspot = ()=>{
+    const c2=charData[currentChar]; if(!c2) return;
+    const h2=c2.viewHotspots[currentView][idx]; if(!h2) return;
+    h2.emoji=document.getElementById('_he-emoji').value || '✨';
+    h2.title=document.getElementById('_he-title').value || 'Burbuja';
+    h2.desc=document.getElementById('_he-desc').value || '';
+    // update hotspot dot instantly
+    const area2=document.getElementById('char-img-area');
+    area2.querySelectorAll('.hotspot').forEach(e=>e.remove());
+    renderHotspots(c2.viewHotspots[currentView]);
+    _saveToStorage();
+  };
+  panel.querySelector('#_he-emoji').addEventListener('input', autoSaveHotspot);
+  panel.querySelector('#_he-title').addEventListener('input', autoSaveHotspot);
+  panel.querySelector('#_he-desc').addEventListener('input', autoSaveHotspot);
   panel.querySelector('#_he-title').focus();
 }
 
@@ -1727,6 +1742,7 @@ function createCharacter(){
   };
   _addCardToGrid(id);
   openChar(id);
+  _saveToStorage();
 }
 
 function _addCardToGrid(id){
@@ -1784,7 +1800,7 @@ function _buildCharEditor(id){
         <option value="secundario" ${(!c.type||c.type==='secundario')?'selected':''}>Secundario</option>
       </select>
     </label>
-    <button class="back-btn" onclick="saveCurrentCharacter()" style="margin-left:auto">💾 Guardar</button>
+    <span style="margin-left:auto;font-family:'Cinzel',serif;font-size:0.6rem;color:var(--gold);opacity:0.6">● Auto-guardado</span>
     <button class="back-btn" onclick="deleteCharacter('${id}')" style="border-color:var(--red2);color:#e88">🗑 Eliminar</button>`;
   const tabs = document.querySelector('.char-tabs');
   tabs.parentNode.insertBefore(bar, tabs);
@@ -1794,6 +1810,7 @@ function _buildCharEditor(id){
   cdRole.oninput = _liveSync;
 }
 
+let _charSaveTimer=null;
 function _liveSync(){
   if(!currentChar || !charData[currentChar]) return;
   const c = charData[currentChar];
@@ -1806,6 +1823,8 @@ function _liveSync(){
   if(nameEl) c.name = nameEl.textContent || 'Sin nombre';
   if(roleEl) c.role = roleEl.textContent;
   _syncCard(currentChar);
+  clearTimeout(_charSaveTimer);
+  _charSaveTimer=setTimeout(()=>{ saveCurrentCharacter(); }, 600);
 }
 
 function saveCurrentCharacter(){
@@ -1818,8 +1837,6 @@ function saveCurrentCharacter(){
   c.powers = document.getElementById('cd-powers')?.textContent || c.powers;
   _syncCard(currentChar);
   _saveToStorage();
-  const btn = document.querySelector('#_char-editor-bar .back-btn');
-  if(btn){ const orig=btn.textContent; btn.textContent='✔ Guardado'; setTimeout(()=>btn.textContent=orig,1500); }
 }
 
 function _saveToStorage(){
@@ -2034,8 +2051,8 @@ function editNode(nodeId) {
     <input id="nodeNameInput" value="${escapeHtml(node.name)}">
     <label>📖 DESCRIPCIÓN</label>
     <textarea id="nodeDescInput" rows="3">${escapeHtml(node.desc)}</textarea>
+    <div style="font-size:0.6rem;color:var(--gold);opacity:0.5;text-align:center;margin-top:4px">● Auto-guardado</div>
     <div style="display:flex;gap:0.5rem;margin-top:0.5rem;flex-wrap:wrap">
-      <button class="skill-btn" onclick="saveNodeEdit('${nodeId}')">💾 Guardar</button>
       <button class="skill-btn" onclick="addChildToNode('${nodeId}')">➕ Agregar Evolución</button>
       <button class="skill-btn danger" onclick="deleteNode('${nodeId}')">🗑 Eliminar</button>
       <button class="skill-btn" onclick="closeEditPanel()">❌ Cerrar</button>
@@ -2062,6 +2079,17 @@ function editNode(nodeId) {
   editPanel.style.left = left + 'px';
   editPanel.style.top = top + 'px';
   editPanel.style.zIndex = '1001';
+  // auto-guardado en vivo
+  const autoSaveNode = ()=>{
+    const n=findNodeById(charData[currentChar]?.skillTree?.roots||[], nodeId);
+    if(!n) return;
+    n.name=document.getElementById('nodeNameInput')?.value || n.name;
+    n.desc=document.getElementById('nodeDescInput')?.value || n.desc;
+    saveCharactersToLocal();
+    drawSkillTree();
+  };
+  editPanel.querySelector('#nodeNameInput')?.addEventListener('input', autoSaveNode);
+  editPanel.querySelector('#nodeDescInput')?.addEventListener('input', autoSaveNode);
 }
 
 function deleteNode(nodeId) {
@@ -2300,12 +2328,20 @@ window.sSave = function(key,val){
     }catch(e){ console.error('[sync] error',e.message); setSyncStatus('✕ Error '+table+': '+e.message.slice(0,70),false); }
   },400);
 };
-// Personajes sync
+// Personajes sync - upsert con ids, borra eliminados
 window.syncCharactersToCloud = async function(){
   if(!navigator.onLine) return;
-  for(const [id,c] of Object.entries(window.charData||{})){
-    try{ await sbFetch('personajes','POST',[{id, name:c.name, emoji:c.emoji, role:c.role, type:c.type||'secundario', info:c.info, name_origin:c.nameOrigin, story:c.story, powers:c.powers, images:c.images||[null,null,null]}]); }catch(e){ console.error(e.message); }
-  }
+  try{
+    const payload = Object.entries(window.charData||{}).map(([id,c])=>({id, name:c.name, emoji:c.emoji, role:c.role, type:c.type||'secundario', info:c.info, name_origin:c.nameOrigin, story:c.story, powers:c.powers, images:c.images||[null,null,null]}));
+    if(payload.length) await sbFetch('personajes','POST',payload, {Prefer:'resolution=merge-duplicates,return=representation'});
+    // borra personajes eliminados localmente
+    try{
+      const cloud = await sbFetch('personajes','GET');
+      const localIds = new Set(payload.map(p=>p.id));
+      for(const row of cloud){ if(!localIds.has(row.id)) await fetch(DIRECT_URL+'/rest/v1/personajes?id=eq.'+row.id, {method:'DELETE', headers:{apikey:DIRECT_KEY, Authorization:'Bearer '+DIRECT_KEY}}); }
+    }catch(e){ console.warn('[sync] personajes cleanup',e.message); }
+    setSyncStatus('● Personajes guardados');
+  }catch(e){ console.error('[sync] personajes',e.message); setSyncStatus('✕ Personajes: '+e.message.slice(0,40),false); }
 };
 // Load from cloud on start if online - AUTO PUSH si nube vacía
 if(navigator.onLine){
@@ -2330,7 +2366,35 @@ if(navigator.onLine){
       if(window.renderClanes) renderClanes(sLoad('loop_clanes', DEFAULT_CLANES));
       if(window.renderTecnicas) renderTecnicas(sLoad('loop_tecnicas', DEFAULT_TECNICAS));
     }catch{}
-    try{ const chars=await sbFetch('personajes','GET'); if(!chars||chars.length===0) await window.syncCharactersToCloud(); }catch{}
+    // Personajes: pull si nube tiene, push si vacía
+    try{
+      const chars = await sbFetch('personajes','GET');
+      if(!chars || chars.length===0){
+        if(Object.keys(window.charData||{}).length) await window.syncCharactersToCloud();
+      } else {
+        // merge nube -> local
+        let changed=false;
+        const cloudIds=new Set(chars.map(c=>c.id));
+        chars.forEach(r=>{
+          const mapped={name:r.name, emoji:r.emoji, role:r.role, type:r.type||'secundario', info:r.info, nameOrigin:r.name_origin, story:r.story, powers:r.powers, images:r.images||[null,null,null]};
+          if(!charData[r.id]){
+            charData[r.id]={...mapped, accessories:[], viewHotspots:[[],[],[]], skillTree:{roots:[]}, views:['Frontal','Lateral','Posterior'], hotspots:[]};
+            _addCardToGrid(r.id);
+            changed=true;
+          } else {
+            // actualiza solo si cambió
+            const cur=charData[r.id];
+            if(cur.name!==mapped.name||cur.info!==mapped.info||cur.story!==mapped.story||cur.powers!==mapped.powers||JSON.stringify(cur.images)!==JSON.stringify(mapped.images)){
+              Object.assign(cur, mapped);
+              _syncCard(r.id);
+              changed=true;
+            }
+          }
+        });
+        // si hay personajes locales nuevos con id char_* que no están en nube, ya se pushearán en próximo syncCharactersToCloud, no borrar
+        if(changed) localStorage.setItem('loop_characters', JSON.stringify(charData));
+      }
+    }catch(e){ console.error('[sync] personajes init',e.message); }
   })();
 }
 window.addEventListener('online', ()=>location.reload());
@@ -2372,8 +2436,9 @@ let _polling=false;
 async function pollOnce(){
   if(_polling) return;
   if(document.querySelector('[contenteditable]:focus')) return;
-  // no pisar si hay guardado pendiente
+  if(document.querySelector('#_char-emoji:focus, #_char-type:focus')) return;
   if(Object.keys(_saveTimers).some(k=>_saveTimers[MAP[k]])) return;
+  if(_charSaveTimer) return;
   _polling=true;
   try{
     for(const [lsKey, table] of Object.entries(MAP)){
@@ -2393,6 +2458,30 @@ async function pollOnce(){
         }
       }catch{}
     }
+    // personajes polling
+    try{
+      const cloudChars = await sbFetch('personajes','GET');
+      const localIds = new Set(Object.keys(charData));
+      const cloudIds = new Set(cloudChars.map(c=>c.id));
+      let changed=false;
+      for(const r of cloudChars){
+        if(!charData[r.id]){
+          charData[r.id]={name:r.name, emoji:r.emoji, role:r.role, type:r.type||'secundario', info:r.info, nameOrigin:r.name_origin, story:r.story, powers:r.powers, images:r.images||[null,null,null], accessories:[], viewHotspots:[[],[],[]], skillTree:{roots:[]}, views:['Frontal','Lateral','Posterior'], hotspots:[]};
+          _addCardToGrid(r.id);
+          changed=true;
+        } else {
+          const cur=charData[r.id];
+          if(cur.name!==r.name||cur.role!==r.role||cur.emoji!==r.emoji||cur.info!==r.info){
+            Object.assign(cur, {name:r.name, emoji:r.emoji, role:r.role, type:r.type||'secundario', info:r.info, nameOrigin:r.name_origin, story:r.story, powers:r.powers, images:r.images||[null,null,null]});
+            _syncCard(r.id);
+            if(currentChar===r.id){ document.getElementById('cd-name').textContent=r.name; document.getElementById('cd-role').textContent=r.role; document.getElementById('cd-info').textContent=r.info||''; }
+            changed=true;
+          }
+        }
+      }
+      for(const id of [...localIds]){ if(!cloudIds.has(id) && !id.startsWith('tradden') && !id.startsWith('sincer') && !id.startsWith('tunami') && !id.startsWith('eleya') && !id.startsWith('polos') && !id.startsWith('haski')){ /* si fue borrado en nube, borrar local */ if(charData[id] && cloudChars.length>0){ delete charData[id]; const card=document.querySelector(`[data-char-id="${id}"]`); if(card) card.remove(); changed=true; } } }
+      if(changed) localStorage.setItem('loop_characters', JSON.stringify(charData));
+    }catch{}
   }finally{_polling=false;}
 }
 setInterval(pollOnce, 3000);
