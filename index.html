@@ -177,17 +177,18 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
   box-shadow:0 10px 40px rgba(201,168,76,0.15)}
 .char-card:hover::before{transform:scaleX(1)}
 .char-avatar{
-  width:70px;height:70px;border-radius:50%;border:2px solid var(--border);
-  margin:0 auto 0.8rem;display:flex;align-items:center;justify-content:center;
-  font-size:2rem;background:var(--dark2);transition:all 0.4s;position:relative
+   width:70px;height:70px;border-radius:50%;border:2px solid var(--border);
+   margin:0 auto 0.8rem;display:flex;align-items:center;justify-content:center;
+   font-size:0;background:var(--dark2);transition:all 0.4s;position:relative
 }
 .char-card:hover .char-avatar{border-color:var(--gold);box-shadow:0 0 20px var(--glow)}
 .char-avatar::after{
-  content:'';position:absolute;inset:-4px;border-radius:50%;
-  border:1px solid var(--gold);opacity:0;transition:opacity 0.4s
+   content:'';position:absolute;inset:-4px;border-radius:50%;
+   border:1px solid var(--gold);opacity:0;transition:opacity 0.4s
 }
 .char-card:hover .char-avatar::after{opacity:0.3;animation:avatarSpin 4s linear infinite}
 @keyframes avatarSpin{to{transform:rotate(360deg)}}
+.char-avatar i.fa-solid{font-size:2rem}
 .char-name{font-family:'Cinzel',serif;color:var(--gold);font-size:0.9rem;
   font-weight:600;letter-spacing:0.05em;margin-bottom:0.3rem}
 .char-role{font-size:0.75rem;color:var(--text);font-style:italic}
@@ -224,11 +225,12 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
   display:flex;align-items:center;justify-content:center;
   flex-shrink:0
 }
+.char-silhouette i.fa-solid{font-size:8rem;line-height:1}
 .char-silhouette{
-  font-size:8rem;line-height:1;text-align:center;
-  filter:drop-shadow(0 0 15px var(--glow));
-  transition:all 0.4s ease;cursor:default;
-  position:relative;z-index:1
+   font-size:8rem;line-height:1;text-align:center;
+   filter:drop-shadow(0 0 15px var(--glow));
+   transition:all 0.4s ease;cursor:default;
+   position:relative;z-index:1
 }
 /* Imagen del personaje */
 .char-uploaded-img{
@@ -319,12 +321,13 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
 }
 .hotspot:hover{transform:scale(1.2)}
 .hotspot-dot{
-  width:28px;height:28px;border-radius:50%;
-  background:rgba(13,11,8,0.85);border:2px solid var(--gold);
-  display:flex;align-items:center;justify-content:center;
-  font-size:0.85rem;box-shadow:0 0 10px var(--glow);
-  animation:dotPulse 2s ease-in-out infinite;transition:all 0.3s
+   width:28px;height:28px;border-radius:50%;
+   background:rgba(13,11,8,0.85);border:2px solid var(--gold);
+   display:flex;align-items:center;justify-content:center;
+   font-size:0;box-shadow:0 0 10px var(--glow);
+   animation:dotPulse 2s ease-in-out infinite;transition:all 0.3s
 }
+.hotspot-dot i.fa-solid{font-size:0.85rem}
 @keyframes dotPulse{0%,100%{box-shadow:0 0 8px var(--glow)}50%{box-shadow:0 0 20px var(--glow),0 0 40px rgba(201,168,76,0.2)}}
 .hotspot:hover .hotspot-dot{background:rgba(201,168,76,0.2);border-color:var(--gold2)}
 .hotspot-line{
@@ -368,7 +371,8 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
   transition:all 0.3s;min-width:150px
 }
 .accessory-item:hover{border-color:var(--gold);box-shadow:0 0 15px rgba(201,168,76,0.1)}
-.acc-icon{font-size:1.5rem}
+.acc-icon{font-size:0;display:flex;align-items:center;justify-content:center}
+.acc-icon i.fa-solid{font-size:1.5rem}
 .acc-name{font-family:'Cinzel',serif;font-size:0.75rem;color:var(--gold)}
 .acc-desc{font-size:0.7rem;color:var(--text);font-style:italic}
 
@@ -498,8 +502,9 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
 .clan-card:hover{border-color:rgba(201,168,76,0.3);transform:translateY(-4px);
   box-shadow:0 10px 35px rgba(0,0,0,0.3)}
 .clan-card:hover::before{opacity:1}
-.clan-symbol{font-size:3rem;margin-bottom:1rem;display:block;text-align:center;
-  filter:drop-shadow(0 0 10px var(--glow))}
+.clan-symbol{font-size:0;display:block;text-align:center;
+   filter:drop-shadow(0 0 10px var(--glow))}
+.clan-symbol i.fa-solid{font-size:3rem}
 .clan-name{font-family:'Cinzel Decorative',serif;color:var(--gold);font-size:1.2rem;
   text-align:center;margin-bottom:1rem}
 .clan-desc{font-size:0.85rem;color:var(--text2);line-height:1.8;font-style:italic;
@@ -603,14 +608,16 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
   /* Personajes: grid 2 columnas */
   #chars-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
   .char-card { padding: 1rem 0.75rem; }
-  .char-avatar { width: 60px; height: 60px; font-size: 1.8rem; margin-bottom: 0.6rem; }
+  .char-avatar { width: 60px; height: 60px; font-size:0; margin-bottom: 0.6rem; }
+.char-avatar i.fa-solid { font-size: 1.8rem; }
   .char-name { font-size: 0.85rem; }
   .char-role { font-size: 0.7rem; }
   .char-type-badge { font-size: 0.58rem; padding: 2px 6px; }
 
   /* Detalle de personaje */
   .char-detail-header { gap: 0.75rem; flex-wrap: wrap; }
-  .char-detail-avatar { width: 70px; height: 70px; font-size: 2.2rem; }
+  .char-detail-avatar { width: 70px; height: 70px; font-size:0; }
+.char-detail-avatar i.fa-solid { font-size: 2.2rem; }
   .char-detail-name { font-size: 1.4rem; }
   .char-detail-role { font-size: 0.82rem; }
 
@@ -631,7 +638,8 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
   /* Accesorios */
   .accessories-grid { gap: 0.5rem; }
   .accessory-item { min-width: 130px; padding: 0.6rem; gap: 0.5rem; }
-  .acc-icon { font-size: 1.3rem; }
+  .acc-icon { font-size:0; }
+.acc-icon i.fa-solid { font-size: 1.3rem; }
   .acc-name { font-size: 0.7rem; }
   .acc-desc { font-size: 0.65rem; }
 
@@ -650,7 +658,8 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
   /* Clanes: 1 columna */
   .clanes-grid { grid-template-columns: 1fr; gap: 1rem; }
   .clan-card { padding: 1.1rem; }
-  .clan-symbol { font-size: 2.5rem; margin-bottom: 0.75rem; }
+  .clan-symbol { font-size:0; margin-bottom: 0.75rem; }
+.clan-symbol i.fa-solid { font-size: 2.5rem; }
   .clan-name { font-size: 1rem; }
   .clan-desc { font-size: 0.85rem; }
 
@@ -666,7 +675,8 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
   .hotspot-panel { width: 170px; padding: 0.75rem; }
   .hotspot-panel h4 { font-size: 0.75rem; }
   .hotspot-panel p { font-size: 0.7rem; }
-  .hotspot-dot { width: 26px; height: 26px; font-size: 0.8rem; }
+  .hotspot-dot { width: 26px; height: 26px; font-size: 0; }
+.hotspot-dot i.fa-solid { font-size: 0.8rem; }
 
   /* Scrollbar más delgada */
   ::-webkit-scrollbar { width: 3px; }
@@ -718,15 +728,39 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
   .section-btn { padding: 1.1rem 0.6rem; }
   .char-tab { font-size: 0.6rem; padding: 0.4rem 0.5rem; }
 }
+
+/* ===== Música de fondo ===== */
+#music-toggle{
+  position:fixed;bottom:14px;right:14px;z-index:9999;
+  background:rgba(13,11,8,0.9);border:1px solid var(--border);color:var(--gold);
+  font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:0.08em;
+  padding:0.5rem 0.9rem;border-radius:999px;cursor:pointer;
+  display:flex;align-items:center;gap:0.5rem;
+  box-shadow:0 4px 20px rgba(0,0,0,0.4);backdrop-filter:blur(6px);
+  transition:all 0.3s
+}
+#music-toggle:hover{border-color:var(--gold);background:rgba(201,168,76,0.12);transform:translateY(-1px)}
+#music-toggle.playing{border-color:var(--gold);color:var(--gold2);box-shadow:0 0 15px var(--glow)}
+#music-toggle.paused{border-color:var(--red2);color:#e88;animation:musicPulse 2s ease-in-out infinite}
+@keyframes musicPulse{0%,100%{box-shadow:0 0 0 rgba(192,57,43,0)}50%{box-shadow:0 0 12px rgba(192,57,43,0.35)}}
+@media (max-width:768px){
+  #music-toggle{bottom:10px;right:10px;font-size:0.65rem;padding:0.45rem 0.75rem}
+}
 </style>
 </head>
 <body>
 
+<!-- Música de fondo: bucle 40% volumen, inicio aleatorio -->
+<audio id="bg-music" loop preload="auto" playsinline>
+  <source src="bg-music.opus" type="audio/ogg; codecs=opus">
+  <source src="bg-music.mp3" type="audio/mpeg">
+</audio>
 <canvas id="bg-canvas"></canvas>
 <div class="cursor-glow" id="cursor"></div>
 
 <div id="app">
 <div id="sync-status" style="position:fixed;top:8px;right:8px;z-index:9999;background:var(--dark3);border:1px solid var(--border);color:var(--gold);font-family:'Cinzel',serif;font-size:0.62rem;padding:4px 8px;border-radius:4px;opacity:0.75;pointer-events:none;max-width:60vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">● Sync...</div>
+<button id="music-toggle" class="paused" title="Reproducir música"><i class="fa-solid fa-volume-xmark"></i> Activar música</button>
 
 <!-- ===== HOME ===== -->
 <div id="home-screen">
@@ -781,8 +815,8 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
 <!-- ===== HISTORIA ===== -->
 <div id="historia" class="section-page">
   <div class="page-header">
-    <button class="back-btn" onclick="navigate('home')">◀ Inicio</button>
-    <div class="page-title">📜 Historia & Lore</div>
+    <button class="back-btn" onclick="navigate('home')"><i class="fa-solid fa-chevron-left"></i> Inicio</button>
+    <div class="page-title"><i class="fa-solid fa-scroll"></i> Historia &amp; Lore</div>
     <button class="back-btn" onclick="addHistoriaEvent()" style="margin-left:auto">+ Nuevo Evento</button>
   </div>
   <div class="timeline" id="historia-timeline"></div>
@@ -791,7 +825,7 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
 <!-- ===== TRAMAS ===== -->
 <div id="tramas" class="section-page">
   <div class="page-header">
-    <button class="back-btn" onclick="navigate('home')">◀ Inicio</button>
+    <button class="back-btn" onclick="navigate('home')"><i class="fa-solid fa-chevron-left"></i> Inicio</button>
     <div class="page-title"><i class="fa-solid fa-hurricane"></i> Tramas</div>
     <button class="back-btn" onclick="addCard('tramas')" style="margin-left:auto">+ Nueva Trama</button>
   </div>
@@ -801,7 +835,7 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
 <!-- ===== IDEAS ===== -->
 <div id="ideas" class="section-page">
   <div class="page-header">
-    <button class="back-btn" onclick="navigate('home')">◀ Inicio</button>
+    <button class="back-btn" onclick="navigate('home')"><i class="fa-solid fa-chevron-left"></i> Inicio</button>
     <div class="page-title"><i class="fa-solid fa-lightbulb"></i> Ideas</div>
     <button class="back-btn" onclick="addCard('ideas')" style="margin-left:auto">+ Nueva Idea</button>
   </div>
@@ -811,44 +845,44 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
 <!-- ===== PERSONAJES ===== -->
 <div id="personajes" class="section-page">
   <div class="page-header">
-    <button class="back-btn" onclick="navigate('home')">◀ Inicio</button>
-    <div class="page-title"><i class="fa-solid fa-skull-crossbones"></i> Personajes</div><button class="back-btn" onclick="createCharacter()" style="margin-left:auto">+ Nuevo Personaje</button>
+    <button class="back-btn" onclick="navigate('home')"><i class="fa-solid fa-chevron-left"></i> Inicio</button>
+    <div class="page-title"><i class="fa-solid fa-skull-crossbones"></i> Personajes</div><button class="back-btn" onclick="createCharacter()" style="margin-left:auto"><i class="fa-solid fa-plus"></i> Nuevo Personaje</button>
   </div>
 
   <div id="chars-grid">
     <!-- Principales -->
     <div class="char-card" onclick="openChar('tradden')">
-      <div class="char-avatar">🌿</div>
+      <div class="char-avatar"><i class="fa-solid fa-leaf"></i></div>
       <div class="char-name">Tradden</div>
       <div class="char-role">El Campesino que Mataría Dioses</div>
       <span class="char-type-badge badge-principal">Principal</span>
     </div>
     <div class="char-card" onclick="openChar('sincer')">
-      <div class="char-avatar">👑</div>
+      <div class="char-avatar"><i class="fa-solid fa-crown"></i></div>
       <div class="char-name">Sincer</div>
       <div class="char-role">El Noble que se Corrompió</div>
       <span class="char-type-badge badge-principal">Principal</span>
     </div>
     <div class="char-card" onclick="openChar('tunami')">
-      <div class="char-avatar">🌊</div>
+      <div class="char-avatar"><i class="fa-solid fa-water"></i></div>
       <div class="char-name">Tunami</div>
       <div class="char-role">El Maestro Reflejo</div>
       <span class="char-type-badge badge-secundario">Secundario</span>
     </div>
     <div class="char-card" onclick="openChar('eleya')">
-      <div class="char-avatar">⚡</div>
+      <div class="char-avatar"><i class="fa-solid fa-bolt"></i></div>
       <div class="char-name">Eleya</div>
       <div class="char-role">El Locamente Divino</div>
       <span class="char-type-badge badge-secundario">Secundario</span>
     </div>
     <div class="char-card" onclick="openChar('polos')">
-      <div class="char-avatar">🎭</div>
+      <div class="char-avatar"><i class="fa-solid fa-mask"></i></div>
       <div class="char-name">Polos</div>
       <div class="char-role">El de las Muchas Almas</div>
       <span class="char-type-badge badge-secundario">Secundario</span>
     </div>
     <div class="char-card" onclick="openChar('haski')">
-      <div class="char-avatar">🏹</div>
+      <div class="char-avatar"><i class="fa-solid fa-crosshairs"></i></div>
       <div class="char-name">Haski</div>
       <div class="char-role">El Cazador de Todo</div>
       <span class="char-type-badge badge-secundario">Secundario</span>
@@ -862,18 +896,18 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
         <div class="char-detail-name" id="cd-name"></div>
         <div class="char-detail-role" id="cd-role"></div>
       </div>
-      <button class="back-btn" style="margin-left:auto" onclick="closeChar()">◀ Personajes</button>
+      <button class="back-btn" style="margin-left:auto" onclick="closeChar()"><i class="fa-solid fa-chevron-left"></i> Personajes</button>
     </div>
 
     <!-- Viewer interactivo -->
     <div class="char-viewer" id="char-viewer">
-      <button class="char-view-nav prev" onclick="changeView(-1)">◀</button>
+      <button class="char-view-nav prev" onclick="changeView(-1)"><i class="fa-solid fa-chevron-left"></i></button>
       <div class="char-image-area" id="char-img-area">
         <div class="char-silhouette" id="char-sil"></div>
         <div class="view-label" id="view-label">Vista Frontal</div>
         <!-- Hotspots se generan dinámicamente -->
       </div>
-      <button class="char-view-nav next" onclick="changeView(1)">▶</button>
+      <button class="char-view-nav next" onclick="changeView(1)"><i class="fa-solid fa-chevron-right"></i></button>
     </div>
 
     <div class="char-tabs">
@@ -881,19 +915,19 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
       <button class="char-tab" onclick="charTab(this,'historia')">Historia</button>
       <button class="char-tab" onclick="charTab(this,'accesorios')">Accesorios</button>
       <button class="char-tab" onclick="charTab(this,'habilidades')">Habilidades</button>
-      <button class="char-tab" onclick="charTab(this,'skillsTree')">🌳 Árbol</button>
+      <button class="char-tab" onclick="charTab(this,'skillsTree')"><i class="fa-solid fa-tree"></i> Árbol</button>
     </div>
 
     <div id="tab-info" class="char-tab-content active">
       <div class="editable-block">
         <h3>Información Esencial</h3>
-        <div id="cd-info" contenteditable="true" class="event-body"></div>
-        <span class="edit-hint">✎ Editable</span>
-      </div>
-      <div class="editable-block">
-        <h3>Etimología del Nombre</h3>
-        <div id="cd-name-origin" contenteditable="true" class="event-body"></div>
-        <span class="edit-hint">✎ Editable</span>
+<div id="cd-info" contenteditable="true" class="event-body"></div>
+         <span class="edit-hint"><i class="fa-solid fa-pen"></i> Editable</span>
+       </div>
+       <div class="editable-block">
+         <h3>Etimología del Nombre</h3>
+         <div id="cd-name-origin" contenteditable="true" class="event-body"></div>
+         <span class="edit-hint"><i class="fa-solid fa-pen"></i> Editable</span>
       </div>
     </div>
     <div id="tab-historia" class="char-tab-content">
@@ -908,17 +942,17 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
     </div>
     <div id="tab-habilidades" class="char-tab-content">
       <div class="editable-block">
-        <h3>Poderes y Habilidades</h3>
-        <div id="cd-powers" contenteditable="true" class="event-body"></div>
-        <span class="edit-hint">✎ Editable</span>
+<h3>Poderes y Habilidades</h3>
+         <div id="cd-powers" contenteditable="true" class="event-body"></div>
+         <span class="edit-hint"><i class="fa-solid fa-pen"></i> Editable</span>
       </div>
     </div>
     <div id="tab-skillsTree" class="char-tab-content">
       <div class="skills-tree-container">
         <div class="skills-controls">
-          <button class="skill-btn" onclick="addRootSkill()">+ Agregar Raíz</button>
-          <button class="skill-btn" onclick="toggleEditMode()" id="editModeBtn">✎ Mover/Editar</button>
-          <button class="skill-btn danger" onclick="deleteSelectedNode()">🗑 Eliminar</button>
+<button class="skill-btn" onclick="addRootSkill()"><i class="fa-solid fa-plus"></i> Agregar Raíz</button>
+           <button class="skill-btn" onclick="toggleEditMode()" id="editModeBtn"><i class="fa-solid fa-pen"></i> Mover/Editar</button>
+           <button class="skill-btn danger" onclick="deleteSelectedNode()"><i class="fa-solid fa-trash"></i> Eliminar</button>
           <span style="font-size:0.65rem;color:var(--gold);margin-left:auto">💡 Click derecho → Agregar evolución</span>
         </div>
         <div class="tree-canvas-wrapper">
@@ -932,8 +966,8 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
 <!-- ===== CLANES ===== -->
 <div id="clanes" class="section-page">
   <div class="page-header">
-    <button class="back-btn" onclick="navigate('home')">◀ Inicio</button>
-    <div class="page-title">🛡 Clanes & Familias</div>
+    <button class="back-btn" onclick="navigate('home')"><i class="fa-solid fa-chevron-left"></i> Inicio</button>
+    <div class="page-title"><i class="fa-solid fa-shield-halved"></i> Clanes &amp; Familias</div>
     <button class="back-btn" onclick="addClan()" style="margin-left:auto">+ Nuevo Clan</button>
   </div>
   <div class="clanes-grid" id="clanes-grid"></div>
@@ -942,8 +976,8 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
 <!-- ===== TÉCNICAS ===== -->
 <div id="tecnicas" class="section-page">
   <div class="page-header">
-    <button class="back-btn" onclick="navigate('home')">◀ Inicio</button>
-    <div class="page-title">🔥 Técnicas & Habilidades</div>
+    <button class="back-btn" onclick="navigate('home')"><i class="fa-solid fa-chevron-left"></i> Inicio</button>
+    <div class="page-title"><i class="fa-solid fa-fire"></i> Técnicas &amp; Habilidades</div>
     <button class="back-btn" onclick="addTecnica()" style="margin-left:auto">+ Nueva Técnica</button>
   </div>
   <div class="tecnicas-list" id="tecnicas-list"></div>
@@ -1029,23 +1063,23 @@ function toggleTecnica(el){
 
 // Datos de personajes
 const charData={
-  tradden:{
-    name:'Tradden',emoji:'🌿',
-    role:'El Campesino que Mataría Dioses',
-    info:'Granjero trabajador nacido en familia pobre. Amante de los animales y la flora. Cuando quiere algo no para hasta conseguirlo. Visión, atención y capacidad analítica extraordinariamente alta.',
-    nameOrigin:'Del latín "traditio", que significa transmitir y también tradición. Representa la transmisión de poder, filosofía y legado.',
-    story:'Comienza siendo bueno y amigo de Sincer. Al absorber la esencia de un dios caído en batalla, adquiere poder divino y descubre las injusticias del mundo. Inicia una cruzada para matar a todos los dioses y hacer el universo más justo. En su camino se vuelve malo, pero lentamente regresa a quien era, reconociendo sus errores.',
-    powers:'Neuronas Espejo: puede copiar cualquier acción con solo verla una vez. Regeneración Endurecida: las partes de su cuerpo destruidas se regeneran más resistentes. Esencia Divina: absorbe el poder de Hades y posiblemente más.',
-    accessories:[
-      {icon:'🌿',name:'Ropa de Campo',desc:'Vestimenta sencilla de campesino'},
-      {icon:'⚡',name:'Esencia Divina',desc:'Invisible pero presente en su interior'}
-    ],
-    views:['Vista Frontal 🌿','Vista Lateral 🌿','Vista Posterior 🌿'],
-    hotspots:[
-      {x:50,y:15,emoji:'🧠',title:'Neuronas Espejo',desc:'Su mente copia cualquier técnica al instante',dir:'right'},
-      {x:50,y:55,emoji:'⚡',title:'Esencia Divina',desc:'La esencia del dios caído vive en su interior',dir:'left'},
-      {x:50,y:75,emoji:'🦵',title:'Piernas Regeneradas',desc:'Cada herida las vuelve más resistentes',dir:'right'},
-    ],
+tradden:{
+     name:'Tradden',icon:'fa-leaf',
+     role:'El Campesino que Mataría Dioses',
+     info:'Granjero trabajador nacido en familia pobre. Amante de los animales y la flora. Cuando quiere algo no para hasta conseguirlo. Visión, atención y capacidad analítica extraordinariamente alta.',
+     nameOrigin:'Del latín "traditio", que significa transmitir y también tradición. Representa la transmisión de poder, filosofía y legado.',
+     story:'Comienza siendo bueno y amigo de Sincer. Al absorber la esencia de un dios caído en batalla, adquiere poder divino y descubre las injusticias del mundo. Inicia una cruzada para matar a todos los dioses y hacer el universo más justo. En su camino se vuelve malo, pero lentamente regresa a quien era, reconociendo sus errores.',
+     powers:'Neuronas Espejo: puede copiar cualquier acción con solo verla una vez. Regeneración Endurecida: las partes de su cuerpo destruidas se regeneran más resistentes. Esencia Divina: absorbe el poder de Hades y posiblemente más.',
+     accessories:[
+       {icon:'fa-leaf',name:'Ropa de Campo',desc:'Vestimenta sencilla de campesino'},
+       {icon:'fa-bolt',name:'Esencia Divina',desc:'Invisible pero presente en su interior'}
+     ],
+     views:['Vista Frontal','Vista Lateral','Vista Posterior'],
+     hotspots:[
+       {x:50,y:15,icon:'fa-brain',title:'Neuronas Espejo',desc:'Su mente copia cualquier técnica al instante',dir:'right'},
+       {x:50,y:55,icon:'fa-bolt',title:'Esencia Divina',desc:'La esencia del dios caído vive en su interior',dir:'left'},
+       {x:50,y:75,icon:'fa-foot',title:'Piernas Regeneradas',desc:'Cada herida las vuelve más resistentes',dir:'right'},
+     ],
     skillTree: {
       roots: [
         { id: 'r1', name: 'Neuronas Espejo', desc: 'Copia cualquier acción con solo verla', x: 200, y: 100, evolutions: [
@@ -1057,104 +1091,104 @@ const charData={
       ]
     }
   },
-  sincer:{
-    name:'Sincer',emoji:'👑',
-    role:'El Noble que se Corrompió',
-    info:'Nacido en familia noble. Persona noble, amable y muy comprometida con su pueblo y sus inquietudes. Su mejor característica es una voluntad inquebrantable: nunca se rinde.',
-    nameOrigin:'Del latín "sincērus", que significa puro o sincero. Una ironía cruel, ya que con el tiempo traiciona esa pureza original.',
-    story:'Comienza siendo bueno y amigo de Tradden. Con el tiempo, el camino de Tradden lo va irritando cada vez más, acumulando un odio que crece hasta ser extremo. Hace el camino inverso a su amigo: comienza puro y se corrompe, sin señales de redención.',
-    powers:'Voluntad Inquebrantable: nunca se rinde en ninguna circunstancia. Sus poderes específicos están por definirse a medida que su corrupción avanza.',
-    accessories:[
-      {icon:'👑',name:'Insignia Noble',desc:'Símbolo de su linaje aristocrático'},
-      {icon:'⚔',name:'Espada de la Nobleza',desc:'Arma ceremonial de su familia'}
-    ],
-    views:['Vista Frontal 👑','Vista Lateral 👑','Vista Posterior 👑'],
-    hotspots:[
-      {x:50,y:15,emoji:'👑',title:'Porte Noble',desc:'Nacido en la nobleza, su presencia lo delata',dir:'right'},
-      {x:50,y:45,emoji:'❤',title:'Corazón Corrompido',desc:'Antes puro, ahora consumido por el odio',dir:'left'},
-      {x:50,y:70,emoji:'⚔',title:'Espada',desc:'Portada con la elegancia de quien fue entrenado',dir:'right'},
-    ],
+sincer:{
+     name:'Sincer',icon:'fa-crown',
+     role:'El Noble que se Corrompió',
+     info:'Nacido en familia noble. Persona noble, amable y muy comprometida con su pueblo y sus inquietudes. Su mejor característica es una voluntad inquebrantable: nunca se rinde.',
+     nameOrigin:'Del latín "sincērus", que significa puro o sincero. Una ironía cruel, ya que con el tiempo traiciona esa pureza original.',
+     story:'Comienza siendo bueno y amigo de Tradden. Con el tiempo, el camino de Tradden lo va irritando cada vez más, acumulando un odio que crece hasta ser extremo. Hace el camino inverso a su amigo: comienza puro y se corrompe, sin señales de redención.',
+     powers:'Voluntad Inquebrantable: nunca se rinde en ninguna circunstancia. Sus poderes específicos están por definirse a medida que su corrupción avanza.',
+     accessories:[
+       {icon:'fa-crown',name:'Insignia Noble',desc:'Símbolo de su linaje aristocrático'},
+       {icon:'fa-crosshairs',name:'Espada de la Nobleza',desc:'Arma ceremonial de su familia'}
+     ],
+     views:['Vista Frontal','Vista Lateral','Vista Posterior'],
+     hotspots:[
+       {x:50,y:15,icon:'fa-crown',title:'Porte Noble',desc:'Nacido en la nobleza, su presencia lo delata',dir:'right'},
+       {x:50,y:45,icon:'fa-heart',title:'Corazón Corrompido',desc:'Antes puro, ahora consumido por el odio',dir:'left'},
+       {x:50,y:70,icon:'fa-crosshairs',title:'Espada',desc:'Portada con la elegancia de quien fue entrenado',dir:'right'},
+     ],
     skillTree: {
       roots: [
         { id: 's1', name: 'Voluntad Inquebrantable', desc: 'Nunca se rinde', x: 300, y: 150, evolutions: [] }
       ]
     }
   },
-  tunami:{
-    name:'Tunami',emoji:'🌊',
-    role:'Maestro de Defensa y Reflejo',
-    info:'Hombre dedicado a enseñar a la gente de su pueblo. Le encanta practicar artes de defensa personal. Personalidad molesta y presumida, aunque su habilidad es innegable.',
-    nameOrigin:'Del idioma africano Hausa. "Tunami" significa reflejo, describiendo perfectamente su técnica de combate.',
-    story:'Se ganó el respeto de su pueblo como maestro y defensor. Desarrolló la técnica del Reflejo Total de forma autodidacta. Su arrogancia es tan grande como su habilidad.',
-    powers:'Reflejo Total: todos los ataques que recibe los desvía y refleja en otra parte sin recibir daño. Generalmente los envía al cielo.',
-    accessories:[
-      {icon:'📚',name:'Textos de Defensa',desc:'Escrituras sobre artes marciales'},
-      {icon:'🌊',name:'Manto del Reflejo',desc:'Símbolo de su técnica maestra'}
-    ],
-    views:['Frontal 🌊','Lateral 🌊','Posterior 🌊'],
-    hotspots:[
-      {x:50,y:20,emoji:'😤',title:'Expresión Presumida',desc:'Siempre convencido de su superioridad',dir:'right'},
-      {x:50,y:50,emoji:'🌊',title:'Centro del Reflejo',desc:'El origen de su técnica defensiva',dir:'left'},
-    ],
+tunami:{
+     name:'Tunami',icon:'fa-water',
+     role:'Maestro de Defensa y Reflejo',
+     info:'Hombre dedicado a enseñar a la gente de su pueblo. Le encanta practicar artes de defensa personal. Personalidad molesta y presumida, aunque su habilidad es innegable.',
+     nameOrigin:'Del idioma africano Hausa. "Tunami" significa reflejo, describiendo perfectamente su técnica de combate.',
+     story:'Se ganó el respeto de su pueblo como maestro y defensor. Desarrolló la técnica del Reflejo Total de forma autodidacta. Su arrogancia es tan grande como su habilidad.',
+     powers:'Reflejo Total: todos los ataques que recibe los desvía y refleja en otra parte sin recibir daño. Generalmente los envía al cielo.',
+     accessories:[
+       {icon:'fa-book',name:'Textos de Defensa',desc:'Escrituras sobre artes marciales'},
+       {icon:'fa-water',name:'Manto del Reflejo',desc:'Símbolo de su técnica maestra'}
+     ],
+     views:['Frontal','Lateral','Posterior'],
+     hotspots:[
+       {x:50,y:20,icon:'fa-face-angry',title:'Expresión Presumida',desc:'Siempre convencido de su superioridad',dir:'right'},
+       {x:50,y:50,icon:'fa-water',title:'Centro del Reflejo',desc:'El origen de su técnica defensiva',dir:'left'},
+     ],
     skillTree: {
       roots: [
         { id: 't1', name: 'Reflejo Total', desc: 'Desvía cualquier ataque', x: 400, y: 150, evolutions: [] }
       ]
     }
   },
-  eleya:{
-    name:'Eleya',emoji:'⚡',
-    role:'El Locamente Divino',
-    info:'Se caracteriza por su locura y su poder infinito. De joven era completamente normal hasta que un suceso traumático lo quebró por completo, dejándolo totalmente fuera de sí.',
-    nameOrigin:'Por definir. Su nombre captura el caos y la electricidad de su naturaleza rota.',
-    story:'Un joven normal que tras un trauma severo se quiebra psicológicamente. En ese estado contacta por casualidad con lo divino y obtiene poderes abrumadores y aparentemente ilimitados. Muere en algún punto y logra hablar directamente con Dios antes de regresar a la vida.',
-    powers:'Poder Infinito: contacto con lo divino le otorgó poderes sin límite aparente. Al estar fuera de sí, no tiene control consciente pero tampoco inhibiciones.',
-    accessories:[
-      {icon:'⚡',name:'Energía Divina',desc:'Emanación constante de poder sin control'},
-      {icon:'🔮',name:'Fragmento de Locura',desc:'El catalizador de su transformación'}
-    ],
-    views:['Frontal ⚡','Lateral ⚡','Posterior ⚡'],
-    hotspots:[
-      {x:50,y:20,emoji:'🔮',title:'Mente Rota',desc:'El trauma cambió su percepción para siempre',dir:'right'},
-      {x:50,y:50,emoji:'⚡',title:'Poder Divino',desc:'Energía sin límite que emana de su ser',dir:'left'},
-    ],
+eleya:{
+     name:'Eleya',icon:'fa-bolt',
+     role:'El Locamente Divino',
+     info:'Se caracteriza por su locura y su poder infinito. De joven era completamente normal hasta que un suceso traumático lo quebró por completo, dejándolo totalmente fuera de sí.',
+     nameOrigin:'Por definir. Su nombre captura el caos y la electricidad de su naturaleza rota.',
+     story:'Un joven normal que tras un trauma severo se quiebra psicológicamente. En ese estado contacta por casualidad con lo divino y obtiene poderes abrumadores y aparentemente ilimitados. Muere en algún punto y logra hablar directamente con Dios antes de regresar a la vida.',
+     powers:'Poder Infinito: contacto con lo divino le otorgó poderes sin límite aparente. Al estar fuera de sí, no tiene control consciente pero tampoco inhibiciones.',
+     accessories:[
+       {icon:'fa-bolt',name:'Energía Divina',desc:'Emanación constante de poder sin control'},
+       {icon:'fa-crystal-ball',name:'Fragmento de Locura',desc:'El catalizador de su transformación'}
+     ],
+     views:['Frontal','Lateral','Posterior'],
+     hotspots:[
+       {x:50,y:20,icon:'fa-crystal-ball',title:'Mente Rota',desc:'El trauma cambió su percepción para siempre',dir:'right'},
+       {x:50,y:50,icon:'fa-bolt',title:'Poder Divino',desc:'Energía sin límite que emana de su ser',dir:'left'},
+     ],
     skillTree: { roots: [] }
   },
-  polos:{
-    name:'Polos',emoji:'🎭',
-    role:'El Portador de Almas',
-    info:'Tiene múltiples personalidades debido a que alberga muchas almas en su interior por una maldición de su familia. Esas almas son antepasados suyos.',
-    nameOrigin:'Por definir. Puede referirse a los polos de una brújula, siempre apuntando en distintas direcciones según qué alma domine.',
-    story:'Víctima de una antigua maldición familiar que lo llena de almas de sus antepasados. Vive en un constante conflicto interno entre identidades. Las almas incluyen una chica depravada, un viejo sabio, un guerrero y un hombre de gran fuerza física.',
-    powers:'Almas Múltiples: cada alma trae consigo habilidades distintas. Puede invocar la fuerza del guerrero, la astucia del viejo, la brutalidad del hombre fuerte o la imprevisibilidad de la chica.',
-    accessories:[
-      {icon:'🎭',name:'Máscara de Identidades',desc:'Símbolo de sus múltiples yos'},
-      {icon:'📿',name:'Collar de la Maldición',desc:'Reliquia familiar que porta la maldición'}
-    ],
-    views:['Frontal 🎭','Lateral 🎭','Posterior 🎭'],
-    hotspots:[
-      {x:50,y:25,emoji:'🎭',title:'Almas en Conflicto',desc:'Múltiples personalidades batallando por el control',dir:'right'},
-      {x:50,y:60,emoji:'📿',title:'Maldición Familiar',desc:'La fuente de su condición y sus poderes',dir:'left'},
-    ],
-    skillTree: { roots: [] }
-  },
-  haski:{
-    name:'Haski',emoji:'🏹',
-    role:'El Cazador de Todo',
-    info:'Cazador que posee múltiples artefactos para cazar. Muchas de sus herramientas son importantes para varias civilizaciones. Algunas las consiguió legalmente, otras las robó.',
-    nameOrigin:'Por definir. Podría relacionarse con la astucia y velocidad del cazador.',
-    story:'Se dedica a cazar animales para vender sus carnes, pieles y huesos. Llegó incluso a cazar personas. Acumula artefactos de diversas civilizaciones, algunas de gran valor histórico y estratégico.',
-    powers:'Arsenal de Artefactos: herramientas y armas de diversas culturas y civilizaciones. Habilidades de rastreo y caza en cualquier entorno.',
-    accessories:[
-      {icon:'🏹',name:'Arco Principal',desc:'Su arma insignia para la caza'},
-      {icon:'🗡',name:'Artefactos Robados',desc:'Piezas de civilizaciones diversas'},
-      {icon:'🪤',name:'Trampas',desc:'Para presas de cualquier tamaño'}
-    ],
-    views:['Frontal 🏹','Lateral 🏹','Posterior 🏹'],
-    hotspots:[
-      {x:50,y:20,emoji:'👁',title:'Ojo del Cazador',desc:'Visión y atención analítica extraordinaria',dir:'right'},
-      {x:50,y:55,emoji:'🏹',title:'Arsenal',desc:'Artefactos de múltiples civilizaciones',dir:'left'},
-    ],
+polos:{
+     name:'Polos',icon:'fa-mask',
+     role:'El Portador de Almas',
+     info:'Tiene múltiples personalidades debido a que alberga muchas almas en su interior por una maldición de su familia. Esas almas son antepasados suyos.',
+     nameOrigin:'Por definir. Puede referirse a los polos de una brújula, siempre apuntando en distintas direcciones según qué alma domine.',
+     story:'Víctima de una antigua maldición familiar que lo llena de almas de sus antepasados. Vive en un constante conflicto interno entre identidades. Las almas incluyen una chica depravada, un viejo sabio, un guerrero y un hombre de gran fuerza física.',
+     powers:'Almas Múltiples: cada alma trae consigo habilidades distintas. Puede invocar la fuerza del guerrero, la astucia del viejo, la brutalidad del hombre fuerte o la imprevisibilidad de la chica.',
+     accessories:[
+       {icon:'fa-mask',name:'Máscara de Identidades',desc:'Símbolo de sus múltiples yos'},
+       {icon:'fa-prayer-rope',name:'Collar de la Maldición',desc:'Reliquia familiar que porta la maldición'}
+     ],
+     views:['Frontal','Lateral','Posterior'],
+     hotspots:[
+       {x:50,y:25,icon:'fa-mask',title:'Almas en Conflicto',desc:'Múltiples personalidades batallando por el control',dir:'right'},
+{x:50,y:60,icon:'fa-prayer-rope',title:'Maldición Familiar',desc:'La fuente de su condición y sus poderes',dir:'left'},
+     ],
+     skillTree: { roots: [] }
+   },
+   haski:{
+     name:'Haski',icon:'fa-crosshairs',
+     role:'El Cazador de Todo',
+     info:'Cazador que posee múltiples artefactos para cazar. Muchas de sus herramientas son importantes para varias civilizaciones. Algunas las consiguió legalmente, otras las robó.',
+     nameOrigin:'Por definir. Podría relacionarse con la astucia y velocidad del cazador.',
+     story:'Se dedica a cazar animales para vender sus carnes, pieles y huesos. Llegó incluso a cazar personas. Acumula artefactos de diversas civilizaciones, algunas de gran valor histórico y estratégico.',
+     powers:'Arsenal de Artefactos: herramientas y armas de diversas culturas y civilizaciones. Habilidades de rastreo y caza en cualquier entorno.',
+     accessories:[
+       {icon:'fa-crosshairs',name:'Arco Principal',desc:'Su arma insignia para la caza'},
+       {icon:'fa-dagger',name:'Artefactos Robados',desc:'Piezas de civilizaciones diversas'},
+       {icon:'fa-trap',name:'Trampas',desc:'Para presas de cualquier tamaño'}
+     ],
+     views:['Frontal','Lateral','Posterior'],
+     hotspots:[
+       {x:50,y:20,icon:'fa-eye',title:'Ojo del Cazador',desc:'Visión y atención analítica extraordinaria',dir:'right'},
+       {x:50,y:55,icon:'fa-crosshairs',title:'Arsenal',desc:'Artefactos de múltiples civilizaciones',dir:'left'},
+     ],
     skillTree: { roots: [] }
   }
 };
@@ -1170,7 +1204,7 @@ function openChar(id){
   document.getElementById('chars-grid').style.display='none';
   const det=document.getElementById('char-detail');
   det.classList.add('active');
-  document.getElementById('cd-avatar').textContent=c.emoji;
+  document.getElementById('cd-avatar').innerHTML=c.icon?'<i class="fa-solid '+c.icon+'"></i>':'';
   document.getElementById('cd-name').textContent=c.name;
   document.getElementById('cd-role').textContent=c.role;
   document.getElementById('cd-info').textContent=c.info;
@@ -1206,7 +1240,7 @@ function renderView(){
   const zone = area.querySelector('.img-upload-zone');
   const lbl  = document.getElementById('view-label');
 
-  sil.textContent = c.emoji;
+  sil.innerHTML = c.icon?'<i class="fa-solid '+c.icon+'"></i>':'';
   lbl.textContent = VIEW_NAMES[currentView];
 
   const imgData = c.images[currentView];
@@ -1216,7 +1250,7 @@ function renderView(){
   const newZone = document.createElement('div');
   newZone.className = 'img-upload-zone' + (imgData ? ' has-image' : '');
   newZone.innerHTML = `
-    <span class="upload-icon">🖼</span>
+    <span class="upload-icon"><i class="fa-solid fa-image"></i></span>
     <span class="upload-text">Subir imagen<br>${VIEW_NAMES[currentView]}</span>
     <input type="file" accept="image/*" id="img-upload-${currentView}">`;
   area.appendChild(newZone);
@@ -1274,9 +1308,9 @@ function _updateViewerControls(){
   const c = charData[currentChar];
   const hasImg = c && c.images && c.images[currentView];
   ctrl.innerHTML = `
-    ${hasImg ? `<button class="viewer-ctrl-btn danger" onclick="removeViewImage()">🗑 Foto</button>` : ''}
-    <button class="viewer-ctrl-btn ${editingHotspots?'active':''}" onclick="toggleEditHotspots()">${editingHotspots?'✓ Editar burbujas':'✎ Editar burbujas'}</button>
-    ${editingHotspots ? `<button class="viewer-ctrl-btn ${addingHotspot?'active':''}" onclick="startAddHotspot()">+ Añadir burbuja</button>` : ''}`;
+    ${hasImg ? `<button class="viewer-ctrl-btn danger" onclick="removeViewImage()"><i class="fa-solid fa-trash"></i> Foto</button>` : ''}
+    <button class="viewer-ctrl-btn ${editingHotspots?'active':''}" onclick="toggleEditHotspots()">${editingHotspots?'<i class="fa-solid fa-check"></i> Editar burbujas':'<i class="fa-solid fa-pen"></i> Editar burbujas'}</button>
+    ${editingHotspots ? `<button class="viewer-ctrl-btn ${addingHotspot?'active':''}" onclick="startAddHotspot()"><i class="fa-solid fa-plus"></i> Añadir burbuja</button>` : ''}`;
   viewer.appendChild(ctrl);
 }
 
@@ -1346,7 +1380,7 @@ function renderHotspots(hotspots){
     dot.className = 'hotspot' + (editingHotspots ? ' draggable' : '');
     dot.style.cssText = `left:${h.x}%;top:${h.y}%;transform:translate(-50%,-50%);position:absolute;z-index:10`;
     dot.dataset.idx = i;
-    dot.innerHTML = `<div class="hotspot-dot">${h.emoji}</div>`;
+    dot.innerHTML = `<div class="hotspot-dot"><i class="fa-solid ${h.icon}</i></div>`;
 
     if(editingHotspots){
       _makeDraggable(dot, area, i);
@@ -1416,7 +1450,7 @@ function showPanel(h, dotEl, idx){
   panel.style.cssText = `top:${h.y}%;${isRight?'left:calc('+h.x+'% + 20px)':'right:calc('+(100-h.x)+'% + 20px)'};transform:translateY(-50%)`;
   panel.innerHTML = `
     <button class="close-panel" onclick="closePanel(event)">✕</button>
-    <h4>${h.emoji} ${h.title}</h4>
+    <h4><i class="fa-solid ${h.icon}"></i> ${h.title}</h4>
     <p>${h.desc}</p>`;
   area.appendChild(panel);
 }
@@ -1432,22 +1466,22 @@ function openHotspotEditor(idx){
   const isRight = h.x < 60;
   panel.style.cssText = `top:${Math.min(h.y, 70)}%;${isRight?'left:calc('+h.x+'% + 22px)':'right:calc('+(100-h.x)+'% + 22px)'};transform:translateY(-50%)`;
   panel.innerHTML = `
-    <label>EMOJI</label>
-    <input id="_he-emoji" value="${h.emoji}" maxlength="4" style="width:60px;text-align:center;font-size:1.1rem">
+<label>ICONO</label>
+     <input id="_he-icon" value="${h.icon}" style="width:80px;text-align:center;font-size:1.1rem;font-family:monospace">
     <label>TÍTULO</label>
     <input id="_he-title" value="${h.title}">
     <label>DESCRIPCIÓN</label>
     <textarea id="_he-desc" rows="3">${h.desc}</textarea>
     <div style="font-size:0.55rem;color:var(--gold);opacity:0.5;text-align:center;margin-top:4px">● Auto-guardado</div>
     <div class="panel-actions">
-      <button class="back-btn" onclick="deleteHotspot(${idx})" style="border-color:var(--red2);color:#e88">🗑 Eliminar</button>
-      <button class="back-btn" onclick="area_clearPanels()">✕ Cerrar</button>
+<button class="back-btn" onclick="deleteHotspot(${idx})" style="border-color:var(--red2);color:#e88"><i class="fa-solid fa-trash"></i> Eliminar</button>
+       <button class="back-btn" onclick="area_clearPanels()"><i class="fa-solid fa-xmark"></i> Cerrar</button>
     </div>`;
   area.appendChild(panel);
   const autoSaveHotspot = ()=>{
     const c2=charData[currentChar]; if(!c2) return;
     const h2=c2.viewHotspots[currentView][idx]; if(!h2) return;
-    h2.emoji=document.getElementById('_he-emoji').value || '✨';
+    h2.icon=document.getElementById('_he-icon').value || 'fa-sparkles';
     h2.title=document.getElementById('_he-title').value || 'Burbuja';
     h2.desc=document.getElementById('_he-desc').value || '';
     // update hotspot dot instantly
@@ -1456,7 +1490,7 @@ function openHotspotEditor(idx){
     renderHotspots(c2.viewHotspots[currentView]);
     _saveToStorage();
   };
-  panel.querySelector('#_he-emoji').addEventListener('input', autoSaveHotspot);
+  panel.querySelector('#_he-icon').addEventListener('input', autoSaveHotspot);
   panel.querySelector('#_he-title').addEventListener('input', autoSaveHotspot);
   panel.querySelector('#_he-desc').addEventListener('input', autoSaveHotspot);
   panel.querySelector('#_he-title').focus();
@@ -1465,7 +1499,7 @@ function openHotspotEditor(idx){
 function saveHotspotEdit(idx){
   const c = charData[currentChar]; if(!c) return;
   const h = c.viewHotspots[currentView][idx]; if(!h) return;
-  h.emoji = document.getElementById('_he-emoji').value || '✨';
+  h.icon = document.getElementById('_he-icon').value || 'fa-sparkles';
   h.title = document.getElementById('_he-title').value || 'Burbuja';
   h.desc  = document.getElementById('_he-desc').value  || '';
   area_clearPanels();
@@ -1485,13 +1519,13 @@ function deleteHotspot(idx){
 }
 
 function renderAccessories(accs){
-  const el=document.getElementById('cd-accessories');
-  el.innerHTML=accs.map(a=>`
-    <div class="accessory-item">
-      <span class="acc-icon">${a.icon}</span>
-      <div><div class="acc-name">${a.name}</div><div class="acc-desc">${a.desc}</div></div>
-    </div>
-  `).join('');
+   const el=document.getElementById('cd-accessories');
+   el.innerHTML=accs.map(a=>`
+     <div class="accessory-item">
+       <span class="acc-icon"><i class="fa-solid ${a.icon}"></i></span>
+       <div><div class="acc-name">${a.name}</div><div class="acc-desc">${a.desc}</div></div>
+     </div>
+   `).join('');
 }
 
 function charTab(btn,tab){
@@ -1735,7 +1769,7 @@ const cardElements = {};
 function createCharacter(){
   const id = 'char_' + Date.now();
   charData[id] = {
-    name: 'Nuevo Personaje', emoji: '🧍', role: 'Rol del personaje', type: 'secundario',
+    name: 'Nuevo Personaje', icon: 'fa-person', role: 'Rol del personaje', type: 'secundario',
     info: '', nameOrigin: '', story: '', powers: '', accessories: [],
     views: ['Frontal','Lateral','Posterior'], hotspots: [],
     images: [null, null, null], viewHotspots: [[], [], []],
@@ -1766,10 +1800,10 @@ function _syncCard(id){
   const card = cardElements[id] || document.querySelector(`[data-char-id="${id}"]`);
   if(!card) return;
   const c = charData[id];
-  const av = card.querySelector('.char-avatar');
-  const nm = card.querySelector('.char-name');
-  const rl = card.querySelector('.char-role');
-  if(av) av.textContent = c.emoji || '🧍';
+const av = card.querySelector('.char-avatar');
+   const nm = card.querySelector('.char-name');
+   const rl = card.querySelector('.char-role');
+   if(av) av.innerHTML = c.icon?'<i class="fa-solid '+c.icon+'"></i>':'<i class="fa-solid fa-person"></i>';
   if(nm) nm.textContent = c.name || 'Sin nombre';
   if(rl) rl.textContent = c.role || '';
 }
@@ -1791,18 +1825,18 @@ function _buildCharEditor(id){
   bar.id = '_char-editor-bar';
   bar.className = 'editable-block';
   bar.style.cssText = 'display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center;margin-bottom:1rem';
-  bar.innerHTML = `
-    <label style="font-family:Cinzel,serif;font-size:0.75rem;color:var(--gold)">EMOJI
-      <input id="_char-emoji" maxlength="4" value="${c.emoji||'🧍'}" style="margin-left:0.5rem;width:55px;background:var(--dark2);border:1px solid var(--border);color:var(--text2);padding:4px 6px;border-radius:3px">
-    </label>
-    <label style="font-family:Cinzel,serif;font-size:0.75rem;color:var(--gold)">TIPO
-      <select id="_char-type" style="margin-left:0.5rem;background:var(--dark2);border:1px solid var(--border);color:var(--text2);padding:4px 8px;border-radius:3px">
-        <option value="principal" ${c.type==='principal'?'selected':''}>Principal</option>
-        <option value="secundario" ${(!c.type||c.type==='secundario')?'selected':''}>Secundario</option>
-      </select>
-    </label>
-    <span style="margin-left:auto;font-family:'Cinzel',serif;font-size:0.6rem;color:var(--gold);opacity:0.6">● Auto-guardado</span>
-    <button class="back-btn" onclick="deleteCharacter('${id}')" style="border-color:var(--red2);color:#e88">🗑 Eliminar</button>`;
+bar.innerHTML = `
+     <label style="font-family:Cinzel,serif;font-size:0.75rem;color:var(--gold)">ICONO
+       <input id="_char-icon" value="${c.icon||'fa-person'}" style="margin-left:0.5rem;width:80px;background:var(--dark2);border:1px solid var(--border);color:var(--text2);padding:4px 6px;border-radius:3px;font-family:monospace">
+     </label>
+     <label style="font-family:Cinzel,serif;font-size:0.75rem;color:var(--gold)">TIPO
+       <select id="_char-type" style="margin-left:0.5rem;background:var(--dark2);border:1px solid var(--border);color:var(--text2);padding:4px 8px;border-radius:3px">
+         <option value="principal" ${c.type==='principal'?'selected':''}>Principal</option>
+         <option value="secundario" ${(!c.type||c.type==='secundario')?'selected':''}>Secundario</option>
+       </select>
+     </label>
+     <span style="margin-left:auto;font-family:'Cinzel',serif;font-size:0.6rem;color:var(--gold);opacity:0.6">● Auto-guardado</span>
+     <button class="back-btn" onclick="deleteCharacter('${id}')" style="border-color:var(--red2);color:#e88"><i class="fa-solid fa-trash"></i> Eliminar</button>`;
   const tabs = document.querySelector('.char-tabs');
   tabs.parentNode.insertBefore(bar, tabs);
   document.getElementById('_char-emoji').oninput = _liveSync;
@@ -1815,12 +1849,12 @@ let _charSaveTimer=null;
 function _liveSync(){
   if(!currentChar || !charData[currentChar]) return;
   const c = charData[currentChar];
-  const emojiEl = document.getElementById('_char-emoji');
-  const typeEl = document.getElementById('_char-type');
-  const nameEl = document.getElementById('cd-name');
-  const roleEl = document.getElementById('cd-role');
-  if(emojiEl) { c.emoji = emojiEl.value || '🧍'; document.getElementById('cd-avatar').textContent = c.emoji; }
-  if(typeEl) c.type = typeEl.value;
+const iconEl = document.getElementById('_char-icon');
+   const typeEl = document.getElementById('_char-type');
+   const nameEl = document.getElementById('cd-name');
+   const roleEl = document.getElementById('cd-role');
+   if(iconEl) { c.icon = iconEl.value || 'fa-person'; document.getElementById('cd-avatar').innerHTML = c.icon?'<i class="fa-solid '+c.icon+'"></i>':''; }
+   if(typeEl) c.type = typeEl.value;
   if(nameEl) c.name = nameEl.textContent || 'Sin nombre';
   if(roleEl) c.role = roleEl.textContent;
   _syncCard(currentChar);
@@ -1856,28 +1890,28 @@ function deleteCharacter(id){
 }
 
 renderAccessories = function(accs){
-  const el = document.getElementById('cd-accessories');
-  el.innerHTML = `<button class="back-btn" onclick="addAccessory()" style="margin-bottom:0.75rem">+ Accesorio</button><div id="acc-list" class="accessories-grid"></div>`;
-  const list = document.getElementById('acc-list');
-  accs.forEach((a, i) => {
-    const item = document.createElement('div');
-    item.className = 'accessory-item';
-    item.innerHTML = `
-      <span class="acc-icon" contenteditable="true">${a.icon||'✨'}</span>
-      <div style="flex:1">
-        <div class="acc-name" contenteditable="true">${a.name||'Accesorio'}</div>
-        <div class="acc-desc" contenteditable="true">${a.desc||'Descripción'}</div>
-        <button class="back-btn" style="margin-top:4px;font-size:0.65rem;border-color:var(--red2);color:#e88" onclick="removeAccessory(${i})">Eliminar</button>
-      </div>`;
-    list.appendChild(item);
-  });
-};
+   const el = document.getElementById('cd-accessories');
+   el.innerHTML = `<button class="back-btn" onclick="addAccessory()" style="margin-bottom:0.75rem"><i class="fa-solid fa-plus"></i> Accesorio</button><div id="acc-list" class="accessories-grid"></div>`;
+   const list = document.getElementById('acc-list');
+   accs.forEach((a, i) => {
+     const item = document.createElement('div');
+     item.className = 'accessory-item';
+     item.innerHTML = `
+       <span class="acc-icon"><i class="fa-solid ${a.icon||'fa-sparkles'}"></i></span>
+       <div style="flex:1">
+         <div class="acc-name" contenteditable="true">${a.name||'Accesorio'}</div>
+         <div class="acc-desc" contenteditable="true">${a.desc||'Descripción'}</div>
+         <button class="back-btn" style="margin-top:4px;font-size:0.65rem;border-color:var(--red2);color:#e88" onclick="removeAccessory(${i})"><i class="fa-solid fa-trash"></i> Eliminar</button>
+       </div>`;
+     list.appendChild(item);
+   });
+ };
 
-function addAccessory(){
-  if(!currentChar) return;
-  charData[currentChar].accessories.push({ icon:'✨', name:'Nuevo Accesorio', desc:'Descripción' });
-  renderAccessories(charData[currentChar].accessories);
-}
+ function addAccessory(){
+   if(!currentChar) return;
+   charData[currentChar].accessories.push({ icon:'fa-sparkles', name:'Nuevo Accesorio', desc:'Descripción' });
+   renderAccessories(charData[currentChar].accessories);
+ }
 
 function removeAccessory(i){
   if(!currentChar) return;
@@ -2047,18 +2081,18 @@ function editNode(nodeId) {
   
   editPanel = document.createElement('div');
   editPanel.className = 'skill-edit-panel';
-  editPanel.innerHTML = `
-    <label>🏷️ NOMBRE</label>
-    <input id="nodeNameInput" value="${escapeHtml(node.name)}">
-    <label>📖 DESCRIPCIÓN</label>
-    <textarea id="nodeDescInput" rows="3">${escapeHtml(node.desc)}</textarea>
-    <div style="font-size:0.6rem;color:var(--gold);opacity:0.5;text-align:center;margin-top:4px">● Auto-guardado</div>
-    <div style="display:flex;gap:0.5rem;margin-top:0.5rem;flex-wrap:wrap">
-      <button class="skill-btn" onclick="addChildToNode('${nodeId}')">➕ Agregar Evolución</button>
-      <button class="skill-btn danger" onclick="deleteNode('${nodeId}')">🗑 Eliminar</button>
-      <button class="skill-btn" onclick="closeEditPanel()">❌ Cerrar</button>
-    </div>
-  `;
+editPanel.innerHTML = `
+     <label><i class="fa-solid fa-tag"></i> NOMBRE</label>
+     <input id="nodeNameInput" value="${escapeHtml(node.name)}">
+     <label><i class="fa-solid fa-book"></i> DESCRIPCIÓN</label>
+     <textarea id="nodeDescInput" rows="3">${escapeHtml(node.desc)}</textarea>
+     <div style="font-size:0.6rem;color:var(--gold);opacity:0.5;text-align:center;margin-top:4px">● Auto-guardado</div>
+     <div style="display:flex;gap:0.5rem;margin-top:0.5rem;flex-wrap:wrap">
+       <button class="skill-btn" onclick="addChildToNode('${nodeId}')"><i class="fa-solid fa-plus"></i> Agregar Evolución</button>
+       <button class="skill-btn danger" onclick="deleteNode('${nodeId}')"><i class="fa-solid fa-trash"></i> Eliminar</button>
+       <button class="skill-btn" onclick="closeEditPanel()"><i class="fa-solid fa-xmark"></i> Cerrar</button>
+     </div>
+   `;
   document.body.appendChild(editPanel);
   
   // Posicionar el panel cerca del nodo o centrado en móvil
@@ -2140,7 +2174,7 @@ function closeEditPanel() {
 function toggleEditMode() {
   editMode = !editMode;
   const btn = document.getElementById('editModeBtn');
-  if (btn) btn.textContent = editMode ? '✓ Modo edición' : '✎ Mover/Editar';
+  if (btn) btn.innerHTML = editMode ? '<i class="fa-solid fa-check"></i> Modo edición' : '<i class="fa-solid fa-pen"></i> Mover/Editar';
   if (!editMode) { isDragging = false; dragNode = null; }
 }
 
@@ -2202,8 +2236,8 @@ function setupCanvasEvents() {
     return search(char.skillTree.roots);
   }
 
-  // 👇 ESTA ES LA FUNCIÓN QUE NOS INTERESA (onPointerStart)
-  function onPointerStart(e) {
+// onPointerStart
+   function onPointerStart(e) {
     e.preventDefault();
     const coords = getCanvasCoords(e);
     const node = findNodeAtCoord(coords.x, coords.y);
@@ -2493,6 +2527,164 @@ function setSyncStatus(t,ok=true){ const el=document.getElementById('sync-status
 async function testSync(){ try{ const d=await sbFetch('tramas','GET'); setSyncStatus('● '+d.length+' tramas'); }catch(e){ const isBlocked=e.message.includes('Failed to fetch'); const msg=isBlocked?'Offline':e.message.slice(0,40); setSyncStatus('✕ '+msg,false); } }
 setTimeout(testSync,1500);
 console.log('[sync] offline-first Supabase vinculado + auto-save contenteditable');
+</script>
+
+<script>
+/* =============================================
+   MÚSICA DE FONDO — bucle 40% volumen, inicio aleatorio
+   ============================================= */
+(function(){
+  const audio = document.getElementById('bg-music');
+  const btn = document.getElementById('music-toggle');
+  if(!audio) return;
+  const TARGET_VOL = 0.4;
+  const FADE_IN_MS = 3500;
+  const FADE_OUT_MS = 800;
+  audio.loop = true;
+  audio.volume = 0;
+
+  let hasStarted = false;
+  let needsGesture = false;
+  let fadeRaf = null;
+  let isFadingOut = false;
+
+  function cancelFade(){ if(fadeRaf){ cancelAnimationFrame(fadeRaf); fadeRaf=null; } }
+
+  function fadeTo(target, duration){
+    cancelFade();
+    isFadingOut = target < audio.volume;
+    const startVol = audio.volume;
+    const delta = target - startVol;
+    if(Math.abs(delta) < 0.001){ audio.volume = target; return; }
+    const start = performance.now();
+    const step = (now)=>{
+      const elapsed = now - start;
+      const p = Math.min(elapsed / duration, 1);
+      // easeOutCubic para entrada suave, easeIn para salida
+      const eased = target > startVol ? (1 - Math.pow(1 - p, 3)) : (1 - Math.pow(1 - p, 2));
+      audio.volume = startVol + delta * eased;
+      if(p < 1){
+        fadeRaf = requestAnimationFrame(step);
+      } else {
+        audio.volume = target;
+        fadeRaf = null;
+        if(isFadingOut && target === 0){
+          audio.pause();
+          isFadingOut = false;
+        }
+      }
+    };
+    fadeRaf = requestAnimationFrame(step);
+  }
+
+  function fadeIn(){ fadeTo(TARGET_VOL, FADE_IN_MS); }
+  function fadeOutAndPause(){
+    if(audio.paused) return;
+    fadeTo(0, FADE_OUT_MS);
+  }
+
+  function updateBtn(playing){
+    if(!btn) return;
+    if(playing){
+      btn.innerHTML = '<i class="fa-solid fa-volume-high"></i> Música';
+      btn.classList.add('playing'); btn.classList.remove('paused');
+      btn.title = 'Pausar música (40% volumen)';
+    } else {
+      btn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i> Activar música';
+      btn.classList.remove('playing'); btn.classList.add('paused');
+      btn.title = 'Reproducir música';
+    }
+  }
+
+  function playWithRandomStart(){
+    if(hasStarted && !audio.paused) return;
+    const wasFirstStart = !hasStarted;
+    // Solo la PRIMERA vez empieza en punto aleatorio
+    if(wasFirstStart){
+      const d = audio.duration;
+      try{
+        if(!isNaN(d) && isFinite(d) && d > 2){
+          const margin = Math.min(2, d * 0.02);
+          const rnd = Math.random() * (d - margin*2) + margin;
+          audio.currentTime = rnd;
+          console.log('[music] inicio aleatorio', rnd.toFixed(1) + 's / ' + d.toFixed(1) + 's');
+        } else if(isNaN(d) || !isFinite(d)){
+          try{ audio.currentTime = Math.random() * 60; }catch(e){}
+        }
+      }catch(e){ console.warn('[music] seek random falló', e.message); }
+    }
+    audio.loop = true;
+    audio.volume = 0;
+    const p = audio.play();
+    if(p && p.then){
+      p.then(()=>{
+        hasStarted=true; needsGesture=false; updateBtn(true);
+        fadeIn();
+      }).catch(err=>{
+        console.log('[music] autoplay bloqueado, espera gesto:', err.message);
+        needsGesture=true; updateBtn(false);
+      });
+    } else {
+      // fallback sin promise
+      hasStarted=true; fadeIn(); updateBtn(true);
+    }
+  }
+
+  function resumeWithoutRandom(){
+    audio.loop = true;
+    if(!audio.paused) return;
+    audio.volume = 0;
+    const p = audio.play();
+    if(p && p.then) p.then(()=>{ updateBtn(true); fadeIn(); }).catch(()=>updateBtn(false));
+    else { updateBtn(true); fadeIn(); }
+  }
+
+  // Cuando ya hay metadata, intenta autoplay inmediato
+  if(audio.readyState >= 1){
+    // metadata ya disponible
+    setTimeout(playWithRandomStart, 300);
+  } else {
+    audio.addEventListener('loadedmetadata', ()=>{ setTimeout(playWithRandomStart, 100); }, {once:true});
+    // fallback: si tarda mucho, igual intenta
+    setTimeout(()=>{ if(!hasStarted) playWithRandomStart(); }, 1500);
+  }
+
+  // Si el navegador bloquea autoplay, cualquier interacción dispara la música
+  const gestureEvents = ['click','touchstart','keydown'];
+  function onGesture(){
+    if(audio.paused){
+      playWithRandomStart();
+    }
+    if(hasStarted){
+      gestureEvents.forEach(ev=>document.removeEventListener(ev, onGesture));
+    }
+  }
+  gestureEvents.forEach(ev=>document.addEventListener(ev, onGesture, {once:false, passive:true}));
+
+  // Botón toggle: primera vez aleatorio, luego resume sin salto — con fade
+  if(btn){
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      if(audio.paused){
+        cancelFade();
+        if(hasStarted){
+          resumeWithoutRandom();
+        } else {
+          playWithRandomStart();
+        }
+      } else {
+        cancelFade();
+        updateBtn(false);
+        fadeOutAndPause();
+      }
+    });
+  }
+
+  audio.addEventListener('play', ()=>{ updateBtn(true); });
+  audio.addEventListener('pause', ()=>{ cancelFade(); updateBtn(false); });
+
+  console.log('[music] sistema iniciado — bucle + 40% + inicio aleatorio + fade '+FADE_IN_MS+'ms');
+})();
 </script>
 
 </body>
