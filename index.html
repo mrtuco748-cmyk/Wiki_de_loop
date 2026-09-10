@@ -724,7 +724,11 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
 <div class="cursor-glow" id="cursor"></div>
 
 <div id="app">
-<div id="sync-status" style="position:fixed;top:8px;right:8px;z-index:9999;background:var(--dark3);border:1px solid var(--border);color:var(--gold);font-family:'Cinzel',serif;font-size:0.65rem;padding:4px 8px;border-radius:4px;opacity:0.9">● Sync...</div>
+<div id="sync-status" style="position:fixed;top:8px;right:8px;z-index:9999;background:var(--dark3);border:1px solid var(--border);color:var(--gold);font-family:'Cinzel',serif;font-size:0.65rem;padding:4px 8px;border-radius:4px;opacity:0.9;max-width:70vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">● Sync...</div>
+<div style="position:fixed;bottom:8px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;gap:6px">
+  <button onclick="forceSyncAll()" style="background:var(--dark3);border:1px solid var(--gold);color:var(--gold);font-family:'Cinzel',serif;font-size:0.6rem;padding:6px 10px;border-radius:4px;cursor:pointer">↻ Sincronizar</button>
+  <button onclick="clearLocalAndReload()" style="background:var(--dark3);border:1px solid var(--red2);color:#e88;font-family:'Cinzel',serif;font-size:0.6rem;padding:6px 10px;border-radius:4px;cursor:pointer">↺ Recargar desde nube</button>
+</div>
 
 <!-- ===== HOME ===== -->
 <div id="home-screen">
@@ -2209,31 +2213,16 @@ const MAP = { loop_historia:'historia_eventos', loop_tramas:'tramas', loop_ideas
 const DIRECT_URL='https://hkvwczecoeqmgrqpyxme.supabase.co';
 const DIRECT_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrdndjemVjb2VxbWdycXB5eG1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwMzU4NDAsImV4cCI6MjEwNDYxMTg0MH0.9_HheUQwM1_SSj56BT4DGSg7jv0ZFBllv5MbK89so6Q';
 async function sbFetch(table, method='GET', body){
-  // FIX Investigación: Vercel Functions no soporta IPv6 -> proxy falla con ENOTFOUND
-  // Opera GX bloquea supabase.co via adblock -> direct puede fallar
-  // Estrategia: direct-first (browser -> Supabase REST, gateway Kong pone CORS), proxy fallback
-  const tryDirect = async()=>{
-    const headers={ apikey: DIRECT_KEY, Authorization:'Bearer '+DIRECT_KEY, 'Content-Type':'application/json', Prefer:'return=representation' };
-    const url=DIRECT_URL+'/rest/v1/'+table + (method==='DELETE' ? '?id=neq.00000000-0000-0000-000000000000' : '');
-    const opts={method, headers};
-    if(body && method!=='DELETE') opts.body=JSON.stringify(body);
-    const r=await fetch(url, opts);
-    const txt=await r.text();
-    let data; try{data=JSON.parse(txt)}catch{data=txt}
-    if(!r.ok) throw new Error('direct '+r.status+' '+txt.slice(0,400));
-    return data;
-  };
-  const tryProxy = async()=>{
-    const url='/api/sync?table='+table;
-    const opts={method, headers:{'Content-Type':'application/json'}};
-    if(body) opts.body=JSON.stringify(body);
-    const r=await fetch(url, opts);
-    const txt=await r.text();
-    let data; try{data=JSON.parse(txt)}catch{data=txt}
-    if(!r.ok) throw new Error('proxy '+r.status+' '+txt.slice(0,400));
-    return data;
-  };
-  try{ return await tryDirect(); }catch(e){ console.warn('[sync] direct fail (Opera adblock/CORS hypothesis), fallback proxy', e.message); setSyncStatus('Direct bloqueado, probando proxy...',false); return await tryProxy(); }
+  // Build mode: direct-only (Kong gateway ya pone CORS). Proxy eliminado porque Opera GX también lo bloquea en móvil y Vercel tiene ENOTFOUND IPv6.
+  const headers={ apikey: DIRECT_KEY, Authorization:'Bearer '+DIRECT_KEY, 'Content-Type':'application/json', Prefer:'return=representation' };
+  const url=DIRECT_URL+'/rest/v1/'+table + (method==='DELETE' ? '?id=neq.00000000-0000-0000-000000000000' : '');
+  const opts={method, headers};
+  if(body && method!=='DELETE') opts.body=JSON.stringify(body);
+  const r=await fetch(url, opts);
+  const txt=await r.text();
+  let data; try{data=JSON.parse(txt)}catch{data=txt}
+  if(!r.ok) throw new Error(r.status+' '+txt.slice(0,300));
+  return data;
 }
 // Mappers Supabase -> localStorage format
 const mappers={
@@ -2337,7 +2326,13 @@ function attachAutoSave(){
 }
 attachAutoSave();
 function setSyncStatus(t,ok=true){ const el=document.getElementById('sync-status'); if(!el) return; el.textContent=(ok?'● ':'✕ ')+t; el.style.borderColor=ok?'var(--gold)':'var(--red2)'; el.style.color=ok?'var(--gold)':'#e88'; console.log('[sync-status]',t); }
-async function testSync(){ try{ await sbFetch('tramas','GET'); setSyncStatus('● Sync OK '+new Date().toLocaleTimeString()); }catch(e){ const msg=e.message.includes('Failed to fetch')?'Bloqueado por Opera GX adblock - desactiva escudo':e.message.slice(0,60); setSyncStatus('✕ Sync FAIL: '+msg,false); console.error('[sync] testSync',e); } }
+async function testSync(){ try{ const d=await sbFetch('tramas','GET'); setSyncStatus('● Sync OK ('+d.length+' tramas) '+new Date().toLocaleTimeString().slice(0,5)); }catch(e){ const isBlocked=e.message.includes('Failed to fetch')||e.message.includes('NetworkError'); const msg=isBlocked?'Opera GX bloquea supabase.co → desactiva escudo/adblock en opera://settings':e.message.slice(0,70); setSyncStatus('✕ Sync FAIL: '+msg,false); console.error('[sync] testSync',e); } }
+window.clearLocalAndReload = async()=>{
+  if(!confirm('¿Borrar cache local y recargar todo desde Supabase?')) return;
+  Object.keys(MAP).forEach(k=>localStorage.removeItem(k));
+  localStorage.removeItem('loop_characters');
+  location.reload();
+};
 // expose manual sync
 window.forceSyncAll = async()=>{
   setSyncStatus('Sincronizando...');
