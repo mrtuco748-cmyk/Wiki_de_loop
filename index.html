@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;500;600;700&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -67,8 +68,8 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
   opacity:0;animation:fadeUp 1s ease 1.2s forwards
 }
 .home-divider::before,.home-divider::after{
-  content:'✦';position:absolute;top:50%;transform:translateY(-50%);
-  color:var(--gold);font-size:1rem
+   content:'';position:absolute;top:50%;transform:translateY(-50%);
+   color:var(--gold);font-size:1rem
 }
 .home-divider::before{left:-20px}
 .home-divider::after{right:-20px}
@@ -735,7 +736,7 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
   <div class="corner-ornament bl"></div>
   <div class="corner-ornament br"></div>
 
-  <span class="home-sigil">⚔</span>
+  <span class="home-sigil"><i class="fa-solid fa-skull-crossbones"></i></span>
   <div class="home-subtitle">Universo Ficticio</div>
   <div class="home-title">LOOP</div>
   <div class="home-divider"></div>
@@ -745,32 +746,32 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
 
   <div class="sections-grid">
     <div class="section-btn" onclick="navigate('historia')">
-      <span class="btn-icon">📜</span>
+      <span class="btn-icon"><i class="fa-solid fa-scroll"></i></span>
       <div class="btn-label">Historia</div>
       <div class="btn-desc">El lore y la narrativa central del universo Loop</div>
     </div>
     <div class="section-btn" onclick="navigate('tramas')">
-      <span class="btn-icon">🌀</span>
+      <span class="btn-icon"><i class="fa-solid fa-hurricane"></i></span>
       <div class="btn-label">Tramas</div>
       <div class="btn-desc">Arcos y subhistorias entrelazadas</div>
     </div>
     <div class="section-btn" onclick="navigate('ideas')">
-      <span class="btn-icon">💡</span>
+      <span class="btn-icon"><i class="fa-solid fa-lightbulb"></i></span>
       <div class="btn-label">Ideas</div>
       <div class="btn-desc">Conceptos e ideas para desarrollar</div>
     </div>
     <div class="section-btn" onclick="navigate('personajes')">
-      <span class="btn-icon">⚔</span>
+      <span class="btn-icon"><i class="fa-solid fa-skull-crossbones"></i></span>
       <div class="btn-label">Personajes</div>
       <div class="btn-desc">Fichas interactivas de cada personaje</div>
     </div>
     <div class="section-btn" onclick="navigate('clanes')">
-      <span class="btn-icon">🛡</span>
+      <span class="btn-icon"><i class="fa-solid fa-shield-halved"></i></span>
       <div class="btn-label">Clanes</div>
       <div class="btn-desc">Familias, organizaciones y grupos</div>
     </div>
     <div class="section-btn" onclick="navigate('tecnicas')">
-      <span class="btn-icon">🔥</span>
+      <span class="btn-icon"><i class="fa-solid fa-fire"></i></span>
       <div class="btn-label">Técnicas</div>
       <div class="btn-desc">Habilidades y poderes del universo</div>
     </div>
@@ -791,7 +792,7 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
 <div id="tramas" class="section-page">
   <div class="page-header">
     <button class="back-btn" onclick="navigate('home')">◀ Inicio</button>
-    <div class="page-title">🌀 Tramas</div>
+    <div class="page-title"><i class="fa-solid fa-hurricane"></i> Tramas</div>
     <button class="back-btn" onclick="addCard('tramas')" style="margin-left:auto">+ Nueva Trama</button>
   </div>
   <div class="ideas-grid" id="tramas-grid"></div>
@@ -801,7 +802,7 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
 <div id="ideas" class="section-page">
   <div class="page-header">
     <button class="back-btn" onclick="navigate('home')">◀ Inicio</button>
-    <div class="page-title">💡 Ideas</div>
+    <div class="page-title"><i class="fa-solid fa-lightbulb"></i> Ideas</div>
     <button class="back-btn" onclick="addCard('ideas')" style="margin-left:auto">+ Nueva Idea</button>
   </div>
   <div class="ideas-grid" id="ideas-grid"></div>
@@ -811,7 +812,7 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
 <div id="personajes" class="section-page">
   <div class="page-header">
     <button class="back-btn" onclick="navigate('home')">◀ Inicio</button>
-    <div class="page-title">⚔ Personajes</div><button class="back-btn" onclick="createCharacter()" style="margin-left:auto">+ Nuevo Personaje</button>
+    <div class="page-title"><i class="fa-solid fa-skull-crossbones"></i> Personajes</div><button class="back-btn" onclick="createCharacter()" style="margin-left:auto">+ Nuevo Personaje</button>
   </div>
 
   <div id="chars-grid">
@@ -2328,11 +2329,11 @@ window.sSave = function(key,val){
     }catch(e){ console.error('[sync] error',e.message); setSyncStatus('✕ Error '+table+': '+e.message.slice(0,70),false); }
   },400);
 };
-// Personajes sync - upsert con ids, borra eliminados
+// Personajes sync - upsert con ids, borra eliminados (fix: charData no window.charData)
 window.syncCharactersToCloud = async function(){
   if(!navigator.onLine) return;
   try{
-    const payload = Object.entries(window.charData||{}).map(([id,c])=>({id, name:c.name, emoji:c.emoji, role:c.role, type:c.type||'secundario', info:c.info, name_origin:c.nameOrigin, story:c.story, powers:c.powers, images:c.images||[null,null,null]}));
+    const payload = Object.entries(charData||{}).map(([id,c])=>({id, name:c.name, emoji:c.emoji, role:c.role, type:c.type||'secundario', info:c.info, name_origin:c.nameOrigin, story:c.story, powers:c.powers, images:c.images||[null,null,null]}));
     if(payload.length) await sbFetch('personajes','POST',payload, {Prefer:'resolution=merge-duplicates,return=representation'});
     // borra personajes eliminados localmente
     try{
@@ -2370,7 +2371,7 @@ if(navigator.onLine){
     try{
       const chars = await sbFetch('personajes','GET');
       if(!chars || chars.length===0){
-        if(Object.keys(window.charData||{}).length) await window.syncCharactersToCloud();
+        if(Object.keys(charData||{}).length) await window.syncCharactersToCloud();
       } else {
         // merge nube -> local (solo campos definidos, no pisa hardcodeo con null)
         let changed=false;
