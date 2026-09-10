@@ -56,6 +56,13 @@
 - **Impacto:** Sin clones, todos los CRUD (5 tablas) funcionan, `367ab6c` verificado.
 - **Revisable:** No.
 
+### D-9: Personajes 100% auto sin botones (build mode)
+- **Fecha:** 2026-09-10 13:15
+- **Qué:** `index.html:1777` sin `💾 Guardar`, `index.html:1797` `_liveSync` debounced 600ms → `saveCurrentCharacter`, `index.html:1720` `createCharacter` auto `_saveToStorage`, `index.html:1441`/`2051` hotspot/skill sin Guardar + `input` auto, `index.html:2332` `syncCharactersToCloud` upsert `hkvwczecoeqmgrqpyxme` `personajes` `index.html:5` con `PostgREST` docs, `pollOnce` `index.html:2434` incluye personajes, `supabase/migrations/001_wiki_loop.sql:5` RLS `public all`.
+- **Por qué:** Usuario reportó crear personaje no guardaba + todos los Guardar debían eliminarse + personajes no en Supabase (0 filas). Investigación `supabase.com/docs/reference/javascript/upsert` + `supabase.com/docs/reference/javascript/initializing` + `docs.postgrest.org: resolution=merge-duplicates`.
+- **Impacto:** Personajes CRUD en vivo sin botones, `e5abb4f` verificado `GET personajes 6` (`tradden` etc), polling 3s.
+- **Revisable:** No.
+
 ## Próximas decisiones pendientes
 - [ ] Modularizar a Vite+TS o mantener vanilla
 - [x] Backend para persistencia compartida → hecho Supabase

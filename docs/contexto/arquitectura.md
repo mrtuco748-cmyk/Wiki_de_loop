@@ -3,9 +3,9 @@
 ## Stack Tecnológico
 - **Lenguaje:** HTML5, CSS3, JavaScript vanilla (sin framework, sin bundler)
 - **Estilos:** CSS custom properties (:root), Google Fonts (Cinzel, IM Fell English), canvas 2D
-- **Persistencia:** offline-first totalmente automático: localStorage cache + Supabase (9 tablas) via `index.html:2212` `sbFetch` direct-only + upsert con `id` + polling 3s. Sin botones manuales.
-- **Runtime:** Browser-only `index.html` (~2430 líneas) + `api/sync.js` no usado (direct). Sin build.
-- **Infra:** Vercel https://wiki-de-loop.vercel.app + Supabase `hkvwczecoeqmgrqpyxme.supabase.co` (hkvwczecoeqmgrqpyxme). Tablas `001_wiki_loop.sql:1` con RLS public. Build `367ab6c`
+- **Persistencia:** offline-first totalmente automático sin botones: localStorage cache + Supabase 9 tablas `index.html:2212` `sbFetch` direct-only + upsert `Prefer: resolution=merge-duplicates` + `ensureIds` + polling 3s + `_liveSync` 600ms. Personajes `index.html:2332` con `personajes` `id text PK` `index.html:5`.
+- **Runtime:** Browser-only `index.html` (~2445 líneas) `e5abb4f`. Sin build, sin `saveCurrentCharacter` botón.
+- **Infra:** Vercel https://wiki-de-loop.vercel.app + Supabase `hkvwczecoeqmgrqpyxme.supabase.co` (hkvwczecoeqmgrqpyxme) `001_wiki_loop.sql:1` RLS `public all` `index.html:108`. Build `e5abb4f`
 
 ## Mapa de Carpetas
 ```
@@ -23,9 +23,9 @@ Wiki_de_loop/
 
 ## Flujo de Datos
 ```
-Usuario → contenteditable/input/ +Nuevo/✕ → _read*() → ensureIds() → sSave() → localStorage → sbFetch POST upsert (merge-duplicates) → Supabase
-Polling 3s: sbFetch GET → compara cloud vs local (con ids) → si difiere y no hay focus ni _saveTimers → localStorage + re-render
-Al iniciar: GET cloud → si vacío y local tiene → sSave(local); si cloud tiene → local = cloud → render
+Usuario → contenteditable/input/ +Nuevo/✕/crear personaje → _read*()/_liveSync()/createCharacter() → ensureIds() → sSave()/_saveToStorage() → localStorage → sbFetch POST upsert (merge-duplicates) → Supabase `personajes`/`historia_eventos`/etc
+Polling 3s `index.html:2434`: GET cloud → compara (con ids) → si difiere y no hay focus/_saveTimers/_charSaveTimer → localStorage + render*() + _addCardToGrid()/_syncCard()
+Al iniciar: GET 5 tablas + personajes → si nube vacía → push local; si nube tiene → merge nube→local (con ids) → render
 ```
 - Datos default en `DEFAULT_*` + `charData` hardcoded. Al cargar: `sLoad()` mergea con localStorage, y `loop_characters` mergea personajes.
 

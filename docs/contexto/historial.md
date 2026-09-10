@@ -1,5 +1,18 @@
 # Historial — Wiki_de_loop
 
+## [2026-09-10 13:15] - FIX | Personajes 100% auto sin botones (build mode)
+**Resumen:** Fix crear personaje no guardaba + eliminar todos los Guardar
+**Cambios:**
+- `index.html:1777` `_buildCharEditor` sin `💾 Guardar` → `● Auto-guardado` + `_liveSync` `index.html:1797` debounced 600ms → `saveCurrentCharacter` → `_saveToStorage` → `syncCharactersToCloud` `index.html:2332` con `POST Prefer: resolution=merge-duplicates`
+- `index.html:1720` `createCharacter()` ahora `_saveToStorage()` auto, `index.html:1441` hotspot panel sin Guardar + `input` auto, `index.html:2051` skill panel sin Guardar + `input` auto
+- `index.html:2332` `syncCharactersToCloud` upsert + cleanup borra eliminados, `index.html:2346` init pull personajes `hkvwczecoeqmgrqpyxme` (verificado `supabase/docs/reference/javascript/upsert` + `docs.postgrest.org: resolution=merge-duplicates`), `pollOnce` `index.html:2434` incluye personajes + check `_charSaveTimer`
+- Supabase `personajes` `index.html:5` seed `6` (`tradden/sincer/tunami/eleya/polos/haski`) verificado `GET 6` `supabase/migrations/001_wiki_loop.sql:5` RLS `public all`
+- Investigación: `supabase-js` `createClient` `supabase.com/docs/reference/javascript/initializing`, PostgREST upsert primary key, Vercel ENOTFOUND IPv6, Opera GX adblock `WebProNews 2025-11-10`
+- Deploy `e5abb4f` totalmente automático en vivo (agregar/editar/borrar personaje → Supabase → polling 3s)
+**Lecciones:** `id` text PK + `crypto.randomUUID` + `Prefer` evita clones; `createCharacter` debe auto-save; polling debe incluir personajes y no pisar `contenteditable:focus`.
+**Impacto:** Personajes CRUD en vivo sin botones, todos los Guardar eliminados, `index.html:2434` sin `forceSyncAll`/`clearLocalAndReload` manuales.
+**Relacionado:** decisiones.md D-9, arquitectura.md, errores-conocidos.md, glosario.md
+
 ## [2026-09-10 13:05] - FIX | Totalmente automático + upsert con ids
 **Resumen:** Fix cloning (30/20 duplicados) y guardado (solo tramas) → upsert con ids + polling
 **Cambios:**
