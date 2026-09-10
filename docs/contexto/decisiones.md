@@ -57,10 +57,10 @@
 - **Revisable:** No.
 
 ### D-9: Personajes 100% auto sin botones (build mode)
-- **Fecha:** 2026-09-10 13:15
-- **Qué:** `index.html:1777` sin `💾 Guardar`, `index.html:1797` `_liveSync` debounced 600ms → `saveCurrentCharacter`, `index.html:1720` `createCharacter` auto `_saveToStorage`, `index.html:1441`/`2051` hotspot/skill sin Guardar + `input` auto, `index.html:2332` `syncCharactersToCloud` upsert `hkvwczecoeqmgrqpyxme` `personajes` `index.html:5` con `PostgREST` docs, `pollOnce` `index.html:2434` incluye personajes, `supabase/migrations/001_wiki_loop.sql:5` RLS `public all`.
-- **Por qué:** Usuario reportó crear personaje no guardaba + todos los Guardar debían eliminarse + personajes no en Supabase (0 filas). Investigación `supabase.com/docs/reference/javascript/upsert` + `supabase.com/docs/reference/javascript/initializing` + `docs.postgrest.org: resolution=merge-duplicates`.
-- **Impacto:** Personajes CRUD en vivo sin botones, `e5abb4f` verificado `GET personajes 6` (`tradden` etc), polling 3s.
+- **Fecha:** 2026-09-10 13:15 → Fix 13:20 `window.charData` → `charData`
+- **Qué:** `index.html:1777` sin `💾 Guardar`, `index.html:1797` `_liveSync` 600ms → `saveCurrentCharacter`, `index.html:1720` `createCharacter` auto `_saveToStorage`, `index.html:1441`/`2051` hotspot/skill sin Guardar + `input` auto, `index.html:2332` `syncCharactersToCloud` `window.charData`→`charData` fix + upsert `hkvwczecoeqmgrqpyxme` `personajes` `index.html:5` `PostgREST` `Prefer`, `pollOnce` `index.html:2434` incluye personajes, `supabase/migrations/001_wiki_loop.sql:5` RLS `public all`, `index.html:1030` hardcodeo + `index.html:2346` merge sin pisar `null`.
+- **Por qué:** `createCharacter` no guardaba (window.charData undefined, otras secciones usan localStorage y sí), hardcodeo pisaba nube con `undefined`, todos los Guardar debían eliminarse. Docs oficiales `upsert` + `initializing`.
+- **Impacto:** Personajes CRUD en vivo sin botones, `64d831a` verificado `GET personajes 6` y `window.charData` fix, usuario confirma "al fin funciona".
 - **Revisable:** No.
 
 ## Próximas decisiones pendientes

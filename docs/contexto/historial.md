@@ -1,5 +1,14 @@
 # Historial — Wiki_de_loop
 
+## [2026-09-10 13:20] - FIX | Personajes window.charData → charData (final)
+**Resumen:** Fix definitivo crear personaje no guardaba — otras secciones usaban localStorage y sí
+**Cambios:**
+- `index.html:2332` `window.charData` → `charData` en `syncCharactersToCloud` y `index.html:2355` init, `index.html:1715` `ensureIds` ya incluía `id`, `index.html:5` hardcodeo + Supabase `personajes` `0→6` tras reload (verificado `GET personajes 6` `tradden` etc)
+- Build `64d831a` deployado, Vercel `https://wiki-de-loop.vercel.app` verificado `auto-guardado` sin `💾 Guardar`
+**Lecciones:** `const charData` no crea `window.charData`; `personajes` requiere `id text PK` + `Prefer: merge-duplicates` (`supabase.com/docs/reference/javascript/upsert`), polling debe incluir personajes
+**Impacto:** Personajes CRUD en vivo 100% automático, sin clones, sin botones, validado usuario "al fin funciona"
+**Relacionado:** decisiones.md D-9, arquitectura.md: `e5abb4f`→`64d831a`, errores-conocidos.md
+
 ## [2026-09-10 13:15] - FIX | Personajes 100% auto sin botones (build mode)
 **Resumen:** Fix crear personaje no guardaba + eliminar todos los Guardar
 **Cambios:**

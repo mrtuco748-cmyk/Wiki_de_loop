@@ -3,9 +3,9 @@
 ## Stack Tecnológico
 - **Lenguaje:** HTML5, CSS3, JavaScript vanilla (sin framework, sin bundler)
 - **Estilos:** CSS custom properties (:root), Google Fonts (Cinzel, IM Fell English), canvas 2D
-- **Persistencia:** offline-first totalmente automático sin botones: localStorage cache + Supabase 9 tablas `index.html:2212` `sbFetch` direct-only + upsert `Prefer: resolution=merge-duplicates` + `ensureIds` + polling 3s + `_liveSync` 600ms. Personajes `index.html:2332` con `personajes` `id text PK` `index.html:5`.
-- **Runtime:** Browser-only `index.html` (~2445 líneas) `e5abb4f`. Sin build, sin `saveCurrentCharacter` botón.
-- **Infra:** Vercel https://wiki-de-loop.vercel.app + Supabase `hkvwczecoeqmgrqpyxme.supabase.co` (hkvwczecoeqmgrqpyxme) `001_wiki_loop.sql:1` RLS `public all` `index.html:108`. Build `e5abb4f`
+- **Persistencia:** offline-first totalmente automático sin botones: localStorage cache + Supabase 9 tablas `index.html:2212` `sbFetch` direct-only + upsert `Prefer: resolution=merge-duplicates` + `ensureIds` + polling 3s + `_liveSync` 600ms. Personajes `index.html:2332` `charData` (fix `window.charData`→`charData` `64d831a`) `id text PK` `index.html:1030`.
+- **Runtime:** Browser-only `index.html` (~2497 líneas) `64d831a`. Sin `💾 Guardar` en ningún lado, `●` indicador solo.
+- **Infra:** Vercel https://wiki-de-loop.vercel.app + Supabase `hkvwczecoeqmgrqpyxme.supabase.co` (hkvwczecoeqmgrqpyxme) `001_wiki_loop.sql:1` RLS `public all` `index.html:108`. Build `64d831a`
 
 ## Mapa de Carpetas
 ```
