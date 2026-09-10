@@ -1,5 +1,33 @@
 # Historial — Wiki_de_loop
 
+## [2026-09-10 19:00] - FEATURE | Hash-routing para links únicos por pantalla
+**Resumen:** Cada sección y personaje ahora genera un link distinto con hash-routing (#historia, #personaje/tradden, etc.)
+**Cambios:**
+- `index.html` función `navigate()` modificada para soportar hash-routing: actualiza `history.pushState` al navegar entre secciones
+- `index.html` `openChar()` modificado para push a `#personaje/{id}` al abrir personaje
+- `index.html` `closeChar()` modificado para replace a `#personajes` al cerrar detalle
+- `index.html` Listener `DOMContentLoaded` para detectar hash al cargar (links directos)
+- `index.html` Listener `popstate` para manejar botones atrás/adelante del navegador
+- URLs generadas: `#` (home), `#historia`, `#personajes`, `#personaje/{id}`, `#clanes`, `#ideas`, `#tramas`, `#tecnicas`
+**Lecciones:** Hash-routing es la forma más simple de dar URLs únicas en SPA sin framework; `popstate` sincroniza el estado visual con la URL del navegador.
+**Impacto:** Links compartibles para cada pantalla; navegación con botones atrás/adelante funciona; se puede acceder directamente a un personaje con URL.
+**Relacionado:** decisiones.md, arquitectura.md
+
+## [2026-09-10 18:00] - UI | Eliminar botón música + reubicar sync status
+**Resumen:** Eliminado botón de control de música y movido indicador de sync a posición menos invasiva
+**Cambios:**
+- `index.html` eliminado `<button id="music-toggle">` del HTML
+- `index.html` eliminado CSS `#music-toggle` (flotante bottom-right, estados `playing`/`paused`, animación `musicPulse`)
+- `index.html` eliminado script completo de control de música (~130 líneas: `fadeTo`, `fadeIn`, `fadeOutAndPause`, `playWithRandomStart`, `resumeWithoutRandom`, `updateBtn`, listeners de `play`/`pause`)
+- `index.html` agregado script mínimo de autoplay sin botón: solo `tryPlay()` con `audio.play().then()` + fade `requestAnimationFrame` a 0.4 volumen, listeners `click/touchstart/keydown` para desbloqueo de autoplay
+- `index.html:753` `#sync-status` movido de `position:fixed;top:8px;right:8px` a `position:fixed;bottom:8px;left:8px`, reducido font-size `0.62rem→0.55rem`, padding `4px 8px→3px 7px`, opacidad baja `0.75→0.45`, max-width `60vw→50vw`
+- `index.html:561` agregado CSS `#sync-status{transition:opacity 0.4s}` y `:hover{opacity:0.8}`
+- `index.html:2526` `setSyncStatus` modificado: al actualizar estado brevemente opacidad `0.85`, luego `setTimeout 2500ms` vuelve a `0.45`
+- `index.html:571` responsive móvil: `#sync-status{bottom:6px;left:6px;font-size:0.5rem;padding:2px 5px}`
+**Lecciones:** Música de fondo sin control de usuario simplifica UI; indicador de sync funcional pero discreto se logra con opacidad baja + transición; `setSyncStatus` con auto-fadeevita interferir con estética del tema medieval.
+**Impacto:** Interfaz más limpia sin botón de música; sync status presente pero no molesto (aparece y se desvanece automáticamente).
+**Relacionado:** decisiones.md, arquitectura.md
+
 ## [2026-09-10 15:00] - FEATURE | Música de fondo bucle 40% fade + compresión
 **Resumen:** Música ambiental medieval en bucle al 40% con fade in/out e inicio aleatorio. Compresión 82MB→14-23MB.
 **Cambios:**

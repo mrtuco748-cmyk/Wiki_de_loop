@@ -746,6 +746,93 @@ body{background:var(--dark);font-family:'IM Fell English',serif;color:var(--text
 @media (max-width:768px){
   #music-toggle{bottom:10px;right:10px;font-size:0.65rem;padding:0.45rem 0.75rem}
 }
+
+/* ===== ICON PICKER ===== */
+.icon-picker-overlay{
+  position:fixed;top:0;left:0;right:0;bottom:0;z-index:10000;
+  background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;
+  animation:fadeIn 0.2s ease
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.icon-picker{
+  background:var(--dark2);border:1px solid var(--gold);border-radius:8px;
+  width:420px;max-width:95vw;max-height:80vh;display:flex;flex-direction:column;
+  box-shadow:0 8px 40px rgba(0,0,0,0.6),0 0 30px var(--glow);overflow:hidden
+}
+.icon-picker-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0.8rem 1rem;border-bottom:1px solid var(--border)
+}
+.icon-picker-header h3{
+  margin:0;font-family:'Cinzel',serif;font-size:0.85rem;color:var(--gold);letter-spacing:0.05em
+}
+.icon-picker-close{
+  background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.2rem;
+  padding:0.2rem;transition:color 0.2s
+}
+.icon-picker-close:hover{color:var(--gold)}
+.icon-picker-tabs{
+  display:flex;border-bottom:1px solid var(--border)
+}
+.icon-picker-tab{
+  flex:1;padding:0.5rem;text-align:center;cursor:pointer;
+  font-family:'Cinzel',serif;font-size:0.7rem;color:var(--text);
+  background:transparent;border:none;border-bottom:2px solid transparent;
+  transition:all 0.2s;letter-spacing:0.05em
+}
+.icon-picker-tab:hover{color:var(--gold2)}
+.icon-picker-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.icon-picker-search{
+  padding:0.6rem 1rem;border-bottom:1px solid var(--border)
+}
+.icon-picker-search input{
+  width:100%;background:var(--dark);border:1px solid var(--border);
+  color:var(--text2);padding:0.4rem 0.6rem;border-radius:4px;
+  font-family:'IM Fell English',serif;font-size:0.8rem;outline:none;
+  box-sizing:border-box
+}
+.icon-picker-search input:focus{border-color:var(--gold)}
+.icon-picker-grid{
+  flex:1;overflow-y:auto;padding:0.8rem;display:grid;
+  grid-template-columns:repeat(8,1fr);gap:4px;align-content:start
+}
+.icon-picker-grid.emoji-grid{grid-template-columns:repeat(9,1fr)}
+.icon-picker-item{
+  aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  border:1px solid transparent;border-radius:4px;cursor:pointer;
+  font-size:1.1rem;transition:all 0.15s;position:relative
+}
+.icon-picker-item:hover{border-color:var(--gold);background:rgba(201,168,76,0.1)}
+.icon-picker-item.selected{border-color:var(--gold);background:rgba(201,168,76,0.2);box-shadow:0 0 8px var(--glow)}
+.icon-picker-item i{font-size:1rem;color:var(--text2)}
+.icon-picker-item.selected i{color:var(--gold)}
+.icon-picker-cat{
+  grid-column:1/-1;font-family:'Cinzel',serif;font-size:0.65rem;
+  color:var(--gold);opacity:0.7;padding:0.4rem 0 0.2rem;letter-spacing:0.1em;
+  text-transform:uppercase;border-top:1px solid var(--border);margin-top:0.3rem
+}
+.icon-picker-cat:first-child{border-top:none;margin-top:0}
+.icon-picker-footer{
+  display:flex;align-items:center;gap:0.8rem;padding:0.7rem 1rem;
+  border-top:1px solid var(--border);background:var(--dark3)
+}
+.icon-picker-preview{
+  width:36px;height:36px;border-radius:50%;border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  background:var(--dark);flex-shrink:0
+}
+.icon-picker-preview i{font-size:1.1rem;color:var(--gold)}
+.icon-picker-selected-name{
+  flex:1;font-family:monospace;font-size:0.75rem;color:var(--text2);overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap
+}
+.icon-picker-use{
+  background:var(--gold);color:var(--dark);border:none;padding:0.4rem 1rem;
+  border-radius:4px;cursor:pointer;font-family:'Cinzel',serif;font-size:0.7rem;
+  letter-spacing:0.05em;transition:all 0.2s
+}
+.icon-picker-use:hover{background:var(--gold2)}
+.icon-picker-use:disabled{opacity:0.4;cursor:default}
 </style>
 </head>
 <body>
@@ -1038,20 +1125,51 @@ document.addEventListener('click',e=>{
   }
 });
 
-// Navegación
-function navigate(section){
+// Navegación con hash-routing
+function navigate(section, charId){
   document.querySelectorAll('.section-page').forEach(p=>p.classList.remove('active'));
   document.getElementById('home-screen').style.display='none';
   if(section==='home'){
     document.getElementById('home-screen').style.display='flex';
     closeChar();
+    history.pushState(null,'','#');
   } else {
     const pg=document.getElementById(section);
     if(pg){pg.classList.add('active');}
     if(section==='personajes') closeChar();
+    if(section==='personajes' && charId){
+      setTimeout(()=>openChar(charId),50);
+      history.pushState(null,'','#personaje/'+charId);
+    } else {
+      history.pushState(null,'','#'+section);
+    }
   }
   window.scrollTo({top:0,behavior:'smooth'});
 }
+
+// Detectar hash al cargar para links directos
+window.addEventListener('DOMContentLoaded', ()=>{
+  const h = location.hash.replace('#','');
+  if(h.startsWith('personaje/')){
+    const charId = h.split('/')[1];
+    navigate('personajes', charId);
+  } else if(h && h!=='home'){
+    navigate(h);
+  }
+});
+
+// Manejar botones atrás/adelante del navegador
+window.addEventListener('popstate', ()=>{
+  const h = location.hash.replace('#','');
+  if(!h || h==='home'){
+    navigate('home');
+  } else if(h.startsWith('personaje/')){
+    const charId = h.split('/')[1];
+    navigate('personajes', charId);
+  } else {
+    navigate(h);
+  }
+});
 
 // Técnicas accordion
 function toggleTecnica(el){
@@ -1221,6 +1339,7 @@ function closeChar(){
   document.getElementById('chars-grid').style.display='grid';
   document.getElementById('char-detail').classList.remove('active');
   currentChar=null;
+  history.replaceState(null,'','#personajes');
 }
 
 // ─── VISTAS E IMÁGENES ────────────────────────────────────────────────────────
@@ -1696,6 +1815,164 @@ function renderTecnicas(items){
   });
 }
 
+/* =============================================
+   ICON PICKER — FA + Emoji reutilizable
+   ============================================= */
+const ICON_CATEGORIES = {
+  'Personajes': ['fa-person','fa-user','fa-user-secret','fa-user-ninja','fa-user-astronaut','fa-user-tie','fa-child','fa-baby','fa-skull','fa-ghost','fa-robot','fa-eye','fa-hand-fist','fa-hand-sparkles','fa-masks-theater','fa-hat-wizard','fa-hat-witch','fa-crown','fa-ring','fa-gem'],
+  'Armas': ['fa-shield','fa-shield-halved','fa-shield-heart','fa-crosshairs','fa-bullseye','fa-bolt','fa-bolt-lightning','fa-fire','fa-fire-flame-curved','fa-skull-crossbones','fa-dagger','fa-khanda','fa-wand-sparkles','fa-wand-magic-sparkles','fa-scythe','fa-axe-battle','fa-knife-kitchen','fa-bow-arrow'],
+  'Elementos': ['fa-leaf','fa-seedling','fa-tree','fa-mountain','fa-water','fa-droplet','fa-snowflake','fa-sun','fa-moon','fa-star','fa-cloud','fa-wind','fa-tornado','fa-meteor','fa-volcano','fa-gem','fa-diamond','fa-heart','fa-heart-crack'],
+  'Símbolos': ['fa-infinity','fa-atlas','fa-compass','fa-map','fa-scroll','fa-book','fa-book-skull','fa-feather','fa-feather-pointed','fa-pen-nib','fa-quill','fa-stamp','fa-sigil','fa-rune','fa-yin-yang','fa-ankh','fa-chess','fa-chess-king','fa-chess-queen'],
+  'Naturaleza': ['fa-dove','fa-dragon','fa-fish','fa-frog','fa-horse','fa-hippo','fa-spider','fa-bug','fa-snake','fa-shrimp','fa-whale','fa-otter','fa-paw','fa-egg','fa-mushroom','fa-wheat-awn','fa-fire-flame-curved','fa-cloud-moon'],
+  'Misc': ['fa-sparkles','fa-star-of-life','fa-snowflake','fa-asterisk','fa-hashtag','fa-heart','fa-music','fa-palette','fa-microscope','fa-flask','fa-gear','fa-key','fa-lock','fa-trophy','fa-flag','fa-location-dot','fa-route','fa-anchor']
+};
+
+const EMOJI_LIST = [
+  // Personajes
+  '🧍','🧎','🚶','🧍‍♂️','🧍‍♀️','🧘','🏃','🏃‍♂️','🏃‍♀️','💃','🕺','🤲','👐','🫶','🤘','👋',
+  // Caras
+  '😀','😃','😄','😁','😆','😅','🤣','😂','🙂','😊','😇','🥰','😍','🤩','😘','😗','😚','😙','🥲','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🫢','🤫','🤔','🫡','🤐','🤨','😐','😑','😶','🫥','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🥵','🥶','🥴','😵','🤯','🤠','🥳','🥸','😎','🤓','🧐',
+  // Manos
+  '👍','👎','👊','✊','🤛','🤜','👏','🙌','🫶','👐','🤲','🤝','🙏','💪','🦾','🖖','🫰','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','🫵','👋','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🫷','🫸',
+  // Objetos
+  '⚔️','🛡️','🔱','⚡','🔥','💧','🌊','❄️','☀️','🌙','⭐','🌟','💫','✨','🔮','💎','👑','💍','🎭','🎪','🎨','🎵','🎶','📜','📖','🗡️','🏹','🪄','🧙','🧝','🧛','🧜','🪶','🪬','🧿','🔮','⚗️','🗝️','🔐'],
+  // Naturaleza
+  '🌿','🍀','🌱','🌲','🌳','🌴','🌵','🌾','🍄','🌸','🌺','🌻','🌹','🌷','💐','🪷','🍂','🍁','🍃'],
+  // Animales
+  '🐉','🦅','🦉','🐺','🦊','🐱','🦁','🐯','🐻','🐼','🐸','🐍','🦎','🐢','🐊','🐋','🐳','🦈','🐙','🦑','🦐','🦀','🦋','🐝','🪲','🕷️','🐜','🦗'],
+  // Símbolos
+  '❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','☮️','☯️','✡️','✝️','☪️','🕉️','☸️','✡️','🔯','🕎','☯️','☦️','🛐','⛎','♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓','💟']
+};
+
+let _iconPickerCallback = null;
+let _iconPickerCurrent = '';
+
+function openIconPicker(currentValue, callback){
+  _iconPickerCurrent = currentValue || '';
+  _iconPickerCallback = callback;
+
+  const isEmoji = _iconPickerCurrent && !_iconPickerCurrent.startsWith('fa-');
+
+  const overlay = document.createElement('div');
+  overlay.className = 'icon-picker-overlay';
+  overlay.id = 'icon-picker-overlay';
+  overlay.innerHTML = `
+    <div class="icon-picker">
+      <div class="icon-picker-header">
+        <h3>Seleccionar Icono</h3>
+        <button class="icon-picker-close" onclick="closeIconPicker()">&times;</button>
+      </div>
+      <div class="icon-picker-tabs">
+        <button class="icon-picker-tab ${!isEmoji?'active':''}" data-tab="fa" onclick="switchIconTab('fa')">Font Awesome</button>
+        <button class="icon-picker-tab ${isEmoji?'active':''}" data-tab="emoji" onclick="switchIconTab('emoji')">Emoji</button>
+      </div>
+      <div class="icon-picker-search">
+        <input type="text" id="icon-picker-search" placeholder="Buscar icono..." oninput="filterIconPicker()">
+      </div>
+      <div class="icon-picker-grid" id="icon-picker-grid"></div>
+      <div class="icon-picker-footer">
+        <div class="icon-picker-preview" id="icon-picker-preview"></div>
+        <div class="icon-picker-selected-name" id="icon-picker-selected-name">${_iconPickerCurrent||'Ninguno seleccionado'}</div>
+        <button class="icon-picker-use" id="icon-picker-use" onclick="confirmIconPicker()">Usar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) closeIconPicker(); });
+  document.addEventListener('keydown', function _iconEscHandler(e){
+    if(e.key==='Escape'){ closeIconPicker(); document.removeEventListener('keydown', _iconEscHandler); }
+  });
+
+  if(isEmoji) switchIconTab('emoji');
+  else renderFAIcons('');
+  updateIconPreview(_iconPickerCurrent);
+}
+
+function closeIconPicker(){
+  const o = document.getElementById('icon-picker-overlay');
+  if(o) o.remove();
+  _iconPickerCallback = null;
+}
+
+function switchIconTab(tab){
+  document.querySelectorAll('.icon-picker-tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===tab));
+  const grid = document.getElementById('icon-picker-grid');
+  grid.innerHTML = '';
+  grid.className = 'icon-picker-grid' + (tab==='emoji'?' emoji-grid':'');
+  document.getElementById('icon-picker-search').value = '';
+  if(tab==='fa') renderFAIcons('');
+  else renderEmojiIcons('');
+}
+
+function renderFAIcons(filter){
+  const grid = document.getElementById('icon-picker-grid');
+  grid.innerHTML = '';
+  const fl = filter.toLowerCase();
+  for(const [cat, icons] of Object.entries(ICON_CATEGORIES)){
+    const filtered = icons.filter(i=>!fl || i.includes(fl));
+    if(!filtered.length) continue;
+    const catEl = document.createElement('div');
+    catEl.className = 'icon-picker-cat';
+    catEl.textContent = cat;
+    grid.appendChild(catEl);
+    filtered.forEach(icon=>{
+      const item = document.createElement('div');
+      item.className = 'icon-picker-item' + (_iconPickerCurrent===icon?' selected':'');
+      item.innerHTML = `<i class="fa-solid ${icon}"></i>`;
+      item.title = icon;
+      item.onclick = ()=> selectIcon(icon);
+      grid.appendChild(item);
+    });
+  }
+}
+
+function renderEmojiIcons(filter){
+  const grid = document.getElementById('icon-picker-grid');
+  grid.innerHTML = '';
+  const fl = filter.toLowerCase();
+  const emojis = fl ? EMOJI_LIST.filter(e=>e.includes(fl)) : EMOJI_LIST;
+  emojis.forEach(emoji=>{
+    const item = document.createElement('div');
+    item.className = 'icon-picker-item' + (_iconPickerCurrent===emoji?' selected':'');
+    item.textContent = emoji;
+    item.onclick = ()=> selectIcon(emoji);
+    grid.appendChild(item);
+  });
+}
+
+function selectIcon(value){
+  _iconPickerCurrent = value;
+  document.querySelectorAll('.icon-picker-item').forEach(i=>{
+    const match = i.classList.contains('emoji-grid') ? i.textContent : i.querySelector('i')?.className.includes(value.replace('fa-',''));
+    i.classList.toggle('selected', i.title===value || i.textContent===value);
+  });
+  updateIconPreview(value);
+}
+
+function updateIconPreview(value){
+  const prev = document.getElementById('icon-picker-preview');
+  const name = document.getElementById('icon-picker-selected-name');
+  if(!prev) return;
+  if(!value){ prev.innerHTML=''; name.textContent='Ninguno seleccionado'; return; }
+  if(value.startsWith('fa-')) prev.innerHTML=`<i class="fa-solid ${value}"></i>`;
+  else prev.textContent=value;
+  name.textContent=value;
+}
+
+function filterIconPicker(){
+  const q = document.getElementById('icon-picker-search').value;
+  const activeTab = document.querySelector('.icon-picker-tab.active')?.dataset.tab;
+  if(activeTab==='fa') renderFAIcons(q);
+  else renderEmojiIcons(q);
+}
+
+function confirmIconPicker(){
+  if(_iconPickerCallback && _iconPickerCurrent){
+    _iconPickerCallback(_iconPickerCurrent);
+  }
+  closeIconPicker();
+}
+
 function addHistoriaEvent(){
   const items = _readSection('historia-timeline','historia');
   items.push({ id: crypto.randomUUID?crypto.randomUUID():'id_'+Date.now(), era:'Nueva Era', title:'Nuevo Evento', body:'Descripción...' });
@@ -1788,7 +2065,7 @@ function _addCardToGrid(id){
   card.dataset.charId = id;
   card.onclick = () => openChar(id);
   card.innerHTML = `
-    <div class="char-avatar">${c.emoji}</div>
+    <div class="char-avatar">${c.icon?'<i class="fa-solid '+c.icon+'"></i>':'<i class="fa-solid fa-person"></i>'}</div>
     <div class="char-name">${c.name}</div>
     <div class="char-role">${c.role}</div>
     <span class="char-type-badge badge-${c.type||'secundario'}">${c.type==='principal'?'Principal':'Secundario'}</span>`;
@@ -1812,6 +2089,7 @@ const _openCharBase = openChar;
 openChar = function(id){
   _openCharBase(id);
   _buildCharEditor(id);
+  history.pushState(null,'','#personaje/'+id);
 };
 
 function _buildCharEditor(id){
@@ -1839,7 +2117,7 @@ bar.innerHTML = `
      <button class="back-btn" onclick="deleteCharacter('${id}')" style="border-color:var(--red2);color:#e88"><i class="fa-solid fa-trash"></i> Eliminar</button>`;
   const tabs = document.querySelector('.char-tabs');
   tabs.parentNode.insertBefore(bar, tabs);
-  document.getElementById('_char-emoji').oninput = _liveSync;
+  document.getElementById('_char-icon').oninput = _liveSync;
   document.getElementById('_char-type').onchange = _liveSync;
   cdName.oninput = _liveSync;
   cdRole.oninput = _liveSync;
@@ -2367,7 +2645,7 @@ window.sSave = function(key,val){
 window.syncCharactersToCloud = async function(){
   if(!navigator.onLine) return;
   try{
-    const payload = Object.entries(charData||{}).map(([id,c])=>({id, name:c.name, emoji:c.emoji, role:c.role, type:c.type||'secundario', info:c.info, name_origin:c.nameOrigin, story:c.story, powers:c.powers, images:c.images||[null,null,null]}));
+    const payload = Object.entries(charData||{}).map(([id,c])=>({id, name:c.name, emoji:c.icon||'fa-person', role:c.role, type:c.type||'secundario', info:c.info, name_origin:c.nameOrigin, story:c.story, powers:c.powers, images:c.images||[null,null,null]}));
     if(payload.length) await sbFetch('personajes','POST',payload, {Prefer:'resolution=merge-duplicates,return=representation'});
     // borra personajes eliminados localmente
     try{
@@ -2411,7 +2689,7 @@ if(navigator.onLine){
         let changed=false;
         const cloudIds=new Set(chars.map(c=>c.id));
         chars.forEach(r=>{
-          const mapped={name:r.name, emoji:r.emoji, role:r.role, type:r.type, info:r.info, nameOrigin:r.name_origin, story:r.story, powers:r.powers, images:r.images};
+          const mapped={name:r.name, icon:r.emoji||'fa-person', role:r.role, type:r.type, info:r.info, nameOrigin:r.name_origin, story:r.story, powers:r.powers, images:r.images};
           // limpia undefined/null para no pisar
           Object.keys(mapped).forEach(k=>{ if(mapped[k]===null||mapped[k]===undefined) delete mapped[k]; });
           if(!mapped.type) mapped.type='secundario';
@@ -2472,7 +2750,7 @@ let _polling=false;
 async function pollOnce(){
   if(_polling) return;
   if(document.querySelector('[contenteditable]:focus')) return;
-  if(document.querySelector('#_char-emoji:focus, #_char-type:focus')) return;
+  if(document.querySelector('#_char-icon:focus, #_char-type:focus')) return;
   if(Object.keys(_saveTimers).some(k=>_saveTimers[MAP[k]])) return;
   if(_charSaveTimer) return;
   _polling=true;
@@ -2501,7 +2779,7 @@ async function pollOnce(){
       const cloudIds = new Set(cloudChars.map(c=>c.id));
       let changed=false;
       for(const r of cloudChars){
-        const mapped={name:r.name, emoji:r.emoji, role:r.role, type:r.type, info:r.info, nameOrigin:r.name_origin, story:r.story, powers:r.powers, images:r.images};
+        const mapped={name:r.name, icon:r.emoji||'fa-person', role:r.role, type:r.type, info:r.info, nameOrigin:r.name_origin, story:r.story, powers:r.powers, images:r.images};
         Object.keys(mapped).forEach(k=>{ if(mapped[k]===null||mapped[k]===undefined) delete mapped[k]; });
         if(!mapped.type) mapped.type='secundario';
         if(!mapped.images) mapped.images=[null,null,null];
@@ -2523,167 +2801,38 @@ async function pollOnce(){
 }
 setInterval(pollOnce, 3000);
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) pollOnce(); });
-function setSyncStatus(t,ok=true){ const el=document.getElementById('sync-status'); if(!el) return; el.textContent=(ok?'● ':'✕ ')+t; el.style.borderColor=ok?'var(--gold)':'var(--red2)'; el.style.color=ok?'var(--gold)':'#e88'; }
+function setSyncStatus(t,ok=true){ const el=document.getElementById('sync-status'); if(!el) return; el.textContent=(ok?'● ':'✕ ')+t; el.style.borderColor=ok?'var(--gold)':'var(--red2)'; el.style.color=ok?'var(--gold)':'#e88'; el.style.opacity='0.85'; clearTimeout(el._fadeTimer); el._fadeTimer=setTimeout(()=>{ el.style.opacity='0.45'; },2500); }
 async function testSync(){ try{ const d=await sbFetch('tramas','GET'); setSyncStatus('● '+d.length+' tramas'); }catch(e){ const isBlocked=e.message.includes('Failed to fetch'); const msg=isBlocked?'Offline':e.message.slice(0,40); setSyncStatus('✕ '+msg,false); } }
 setTimeout(testSync,1500);
 console.log('[sync] offline-first Supabase vinculado + auto-save contenteditable');
 </script>
 
 <script>
-/* =============================================
-   MÚSICA DE FONDO — bucle 40% volumen, inicio aleatorio
-   ============================================= */
 (function(){
-  const audio = document.getElementById('bg-music');
-  const btn = document.getElementById('music-toggle');
-  if(!audio) return;
-  const TARGET_VOL = 0.4;
-  const FADE_IN_MS = 3500;
-  const FADE_OUT_MS = 800;
-  audio.loop = true;
-  audio.volume = 0;
-
-  let hasStarted = false;
-  let needsGesture = false;
-  let fadeRaf = null;
-  let isFadingOut = false;
-
-  function cancelFade(){ if(fadeRaf){ cancelAnimationFrame(fadeRaf); fadeRaf=null; } }
-
-  function fadeTo(target, duration){
-    cancelFade();
-    isFadingOut = target < audio.volume;
-    const startVol = audio.volume;
-    const delta = target - startVol;
-    if(Math.abs(delta) < 0.001){ audio.volume = target; return; }
-    const start = performance.now();
-    const step = (now)=>{
-      const elapsed = now - start;
-      const p = Math.min(elapsed / duration, 1);
-      // easeOutCubic para entrada suave, easeIn para salida
-      const eased = target > startVol ? (1 - Math.pow(1 - p, 3)) : (1 - Math.pow(1 - p, 2));
-      audio.volume = startVol + delta * eased;
-      if(p < 1){
-        fadeRaf = requestAnimationFrame(step);
-      } else {
-        audio.volume = target;
-        fadeRaf = null;
-        if(isFadingOut && target === 0){
-          audio.pause();
-          isFadingOut = false;
-        }
-      }
-    };
-    fadeRaf = requestAnimationFrame(step);
+  var audio=document.getElementById('bg-music');
+  if(!audio)return;
+  audio.loop=true;audio.volume=0;
+  var started=false;
+  function tryPlay(){
+    if(started||!audio.paused)return;
+    audio.play().then(function(){
+      started=true;
+      var start=performance.now();
+      (function fade(now){
+        var p=Math.min((now-start)/3500,1);
+        audio.volume=(1-Math.pow(1-p,3))*0.4;
+        if(p<1)requestAnimationFrame(fade);
+      })(start);
+    }).catch(function(){});
   }
-
-  function fadeIn(){ fadeTo(TARGET_VOL, FADE_IN_MS); }
-  function fadeOutAndPause(){
-    if(audio.paused) return;
-    fadeTo(0, FADE_OUT_MS);
-  }
-
-  function updateBtn(playing){
-    if(!btn) return;
-    if(playing){
-      btn.innerHTML = '<i class="fa-solid fa-volume-high"></i> Música';
-      btn.classList.add('playing'); btn.classList.remove('paused');
-      btn.title = 'Pausar música (40% volumen)';
-    } else {
-      btn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i> Activar música';
-      btn.classList.remove('playing'); btn.classList.add('paused');
-      btn.title = 'Reproducir música';
-    }
-  }
-
-  function playWithRandomStart(){
-    if(hasStarted && !audio.paused) return;
-    const wasFirstStart = !hasStarted;
-    // Solo la PRIMERA vez empieza en punto aleatorio
-    if(wasFirstStart){
-      const d = audio.duration;
-      try{
-        if(!isNaN(d) && isFinite(d) && d > 2){
-          const margin = Math.min(2, d * 0.02);
-          const rnd = Math.random() * (d - margin*2) + margin;
-          audio.currentTime = rnd;
-          console.log('[music] inicio aleatorio', rnd.toFixed(1) + 's / ' + d.toFixed(1) + 's');
-        } else if(isNaN(d) || !isFinite(d)){
-          try{ audio.currentTime = Math.random() * 60; }catch(e){}
-        }
-      }catch(e){ console.warn('[music] seek random falló', e.message); }
-    }
-    audio.loop = true;
-    audio.volume = 0;
-    const p = audio.play();
-    if(p && p.then){
-      p.then(()=>{
-        hasStarted=true; needsGesture=false; updateBtn(true);
-        fadeIn();
-      }).catch(err=>{
-        console.log('[music] autoplay bloqueado, espera gesto:', err.message);
-        needsGesture=true; updateBtn(false);
-      });
-    } else {
-      // fallback sin promise
-      hasStarted=true; fadeIn(); updateBtn(true);
-    }
-  }
-
-  function resumeWithoutRandom(){
-    audio.loop = true;
-    if(!audio.paused) return;
-    audio.volume = 0;
-    const p = audio.play();
-    if(p && p.then) p.then(()=>{ updateBtn(true); fadeIn(); }).catch(()=>updateBtn(false));
-    else { updateBtn(true); fadeIn(); }
-  }
-
-  // Cuando ya hay metadata, intenta autoplay inmediato
-  if(audio.readyState >= 1){
-    // metadata ya disponible
-    setTimeout(playWithRandomStart, 300);
-  } else {
-    audio.addEventListener('loadedmetadata', ()=>{ setTimeout(playWithRandomStart, 100); }, {once:true});
-    // fallback: si tarda mucho, igual intenta
-    setTimeout(()=>{ if(!hasStarted) playWithRandomStart(); }, 1500);
-  }
-
-  // Si el navegador bloquea autoplay, cualquier interacción dispara la música
-  const gestureEvents = ['click','touchstart','keydown'];
-  function onGesture(){
-    if(audio.paused){
-      playWithRandomStart();
-    }
-    if(hasStarted){
-      gestureEvents.forEach(ev=>document.removeEventListener(ev, onGesture));
-    }
-  }
-  gestureEvents.forEach(ev=>document.addEventListener(ev, onGesture, {once:false, passive:true}));
-
-  // Botón toggle: primera vez aleatorio, luego resume sin salto — con fade
-  if(btn){
-    btn.addEventListener('click', (e)=>{
-      e.stopPropagation();
-      if(audio.paused){
-        cancelFade();
-        if(hasStarted){
-          resumeWithoutRandom();
-        } else {
-          playWithRandomStart();
-        }
-      } else {
-        cancelFade();
-        updateBtn(false);
-        fadeOutAndPause();
-      }
-    });
-  }
-
-  audio.addEventListener('play', ()=>{ updateBtn(true); });
-  audio.addEventListener('pause', ()=>{ cancelFade(); updateBtn(false); });
-
-  console.log('[music] sistema iniciado — bucle + 40% + inicio aleatorio + fade '+FADE_IN_MS+'ms');
+  if(audio.readyState>=1)setTimeout(tryPlay,300);
+  else audio.addEventListener('loadedmetadata',function(){setTimeout(tryPlay,100)},{once:true});
+  ['click','touchstart','keydown'].forEach(function(ev){
+    document.addEventListener(ev,function(){
+      if(!started)tryPlay();
+      if(started)document.removeEventListener(ev,arguments.callee);
+    },{once:false,passive:true});
+  });
 })();
 </script>
 
