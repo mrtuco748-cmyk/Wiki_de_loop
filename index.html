@@ -2255,10 +2255,13 @@ window.sSave = function(key,val){
       if(table==='tecnicas') return {name:r.name, owner:r.owner, description:r.desc};
       return {title:r.title, body:r.body};
     });
-    try{
-      await supabase.from(table).delete().neq('id','00000000-0000-0000-0000-000000000000');
-      if(payload.length) await supabase.from(table).insert(payload);
-    }catch{ queue(table,val); }
+    const {error: delErr} = await supabase.from(table).delete().neq('id','00000000-0000-0000-0000-000000000000');
+    if(delErr){ console.error('[sync] delete error',delErr); queue(table,payload); return; }
+    if(payload.length){
+      const {error: insErr} = await supabase.from(table).insert(payload);
+      if(insErr){ console.error('[sync] insert error',insErr); queue(table,payload); }
+      else console.log('[sync] synced',table, payload.length);
+    }
   })();
 };
 // Personajes sync simple (charData)
